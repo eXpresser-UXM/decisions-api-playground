@@ -1,36 +1,124 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ポチッとモール判定デモ（Jev × OpenAI Decisions API）
 
-## Getting Started
+架空の本・雑誌ECサイト「ポチッとモール」のカスタマーサポートを題材に、同じ問い合わせ文を
+TypeSafe の **Jev** と OpenAI の **Decisions API** に同時に投げ、判定結果と応答時間を左右に並べて比べるデモです。
+DX道場（2026/10/14）のデモ用に作りました。
 
-First, run the development server:
+<!-- TODO: 画面のスクリーンショット（APIキーが映っていないもの）を docs/screenshot.png に置いてリンクする -->
+
+> [!IMPORTANT]
+> - **デモ・学習用**です。本番運用は想定していません。
+> - **TypeSafe AI 社・OpenAI 社の公式ツールではありません。**
+
+## できること
+
+- 問い合わせ文を入力して「判定する」を押すと、Jev と Decisions API を**並列に**呼び出します
+- 選ばれた選択肢、選択肢ごとの確率、Confidence、応答時間、モデル名（レスポンスに含まれる実際の値）を表示します
+- 「JSONを表示」で、各 API に送ったリクエストと返ってきたレスポンスの JSON（本体のみ）を確認・コピーできます。
+  そのまま各社の Playground や curl に貼り付けて再現できます
+- エラー時はステータスコードとエラー本体を表示します
+
+## 動作環境
+
+- Node.js 24（`.nvmrc` 参照。`nvm use` で切り替えられます）
+- ローカルで `npm run dev` して使う前提です（デプロイは想定していません）
+
+## 起動手順
 
 ```bash
+git clone <このリポジトリのURL>
+cd decisions-api-playground
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで http://localhost:3000 を開き、「設定」タブで APIキーを入力してから「判定」タブで試します。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## APIキー
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| API | キーの取得先 |
+| --- | --- |
+| Jev（TypeSafe） | https://console.typesafe.ai/keys |
+| Decisions API（OpenAI） | https://platform.openai.com/api-keys |
 
-## Learn More
+- どちらも**利用には各社のクレジット（料金）が必要**です。
+- キーは画面で入力し、ブラウザのメモリ（React の state）にのみ保持します。**再読み込みで消えます**。
+  localStorage・sessionStorage・Cookie・ファイルなど、どこにも保存しません。
+- キーは判定のたびに、手元で動いている Next.js の開発サーバーを経由して各社の API に送られます。
+  それ以外の宛先には送信しません。開発サーバーもキーを保存・ログ出力しません。
+- **デモ専用のキーを作り、利用額の上限を設定し、使用後は無効化することを強く推奨します。**
 
-To learn more about Next.js, take a look at the following resources:
+## 入力内容についての注意
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+入力した文章は各社の API に送信されます。**個人情報や社内の実データは入力しないでください。**
+サンプルの問い合わせ文はすべて架空のものです。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 各 API の提供状況（2026-10-10 時点で確認）
 
-## Deploy on Vercel
+- **OpenAI Decisions API**：公開ベータ（GA 予定とされています）。使えるモデルは `gpt-6-luna` のみ。
+- **TypeSafe Jev**：このデモでは `jev-latest` ではなく固定バージョン `jev-1.13.0` を使っています。
+  ドキュメント上、主な学習言語は英語で、日本語を含むその他の言語は精度が同等ではないとされています。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+どちらも仕様変更により、予告なく動かなくなる可能性があります。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## しくみ
+
+```
+ブラウザ（React / MUI）
+  │ axios（キーは x-api-key ヘッダー）
+  ▼
+Next.js Route Handler（app/api/jev, app/api/decisions）
+  │ 公式 SDK（@typesafe-ai/sdk / openai）
+  ▼
+TypeSafe API / OpenAI API
+```
+
+- TypeSafe API はブラウザからの直接呼び出しを CORS で拒否しているため（2026-10-10 確認）、
+  Next.js のサーバー側から呼び出しています。OpenAI も同じ形にそろえています。
+- 両 API は形式が異なる（Decisions API は questions・answers が配列、Jev は辞書）ため、
+  内部では共通の形式（`lib/types.ts`）で扱い、API ごとの変換を `lib/jev.ts`・`lib/decisions.ts` に分けています。
+- 応答時間は、サーバー側で SDK 呼び出しの前後を `performance.now()` で計測した値です。
+  あわせて、ブラウザから見た往復時間（axios 呼び出しの前後）も表示します。
+  計測を1回の呼び出しにそろえるため、SDK の自動リトライは無効にしています。
+- JSON の表示には Monaco Editor を使い、CDN からではなく `monaco-editor` パッケージを同梱して読み込みます。
+
+## 開発者向け
+
+### コミット前の秘密情報チェック
+
+APIキーやトークンをコミットしないよう、コミット前に次を実行して何も出ないことを確認してください。
+
+```bash
+git diff --cached | grep -n -E "sk-[A-Za-z0-9_-]{10,}|Bearer [A-Za-z0-9._-]{10,}|api[_-]?key\s*[:=]\s*['\"][^'\"]{10,}"
+```
+
+履歴全体を確認する場合：
+
+```bash
+git log -p --all | grep -n -E "sk-[A-Za-z0-9_-]{10,}|Bearer [A-Za-z0-9._-]{10,}"
+```
+
+スクリーンショットを追加するときは、設定画面やキーが映っていないことを確認してください。
+
+### 主なファイル
+
+| パス | 内容 |
+| --- | --- |
+| `lib/types.ts` | 共通形式（問い・選択肢・結果） |
+| `lib/questions.ts` | 判定する問いとサンプル入力 |
+| `lib/jev.ts` / `lib/decisions.ts` | 共通形式 ⇔ 各 API の形式の変換 |
+| `lib/apiClient.ts` | ブラウザ → Route Handler の呼び出し（axios）と並列実行 |
+| `app/api/*/route.ts` | 各社 SDK の呼び出しと時間計測 |
+| `components/` | 画面（MUI） |
+| `docs/SPEC.md` | 指示書 |
+
+## 参考リンク
+
+- OpenAI Decisions API：https://developers.openai.com/api/docs/guides/decisions
+- TypeSafe（Jev）ドキュメント：https://docs.typesafe.ai/
+- TypeSafe API リファレンス：https://docs.typesafe.ai/api
+- TypeSafe JavaScript SDK：https://docs.typesafe.ai/sdk/javascript
+
+## ライセンス
+
+[MIT License](./LICENSE)
