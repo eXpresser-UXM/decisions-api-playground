@@ -28,6 +28,8 @@ DX道場（2026/10/14）のデモ用に作りました。
       [Guardrails for LLMs](https://docs.typesafe.ai/cookbooks/llm_guardrails)（入力側の問い。自傷に関する問いは除外）、
       [Smart home assistant demo](https://docs.typesafe.ai/demos/smart-home)（説明をもとに問いを作成）
     - OpenAI：[Decisions API ガイド](https://developers.openai.com/api/docs/guides/decisions)の部署の振り分け・深刻度・商品写真の破損
+  - [G-Eval](https://arxiv.org/abs/2303.16634)（LLM で生成文を評価する手法）の要約評価の4観点（Coherence・Consistency・Fluency・Relevance）を Score で再現した例。
+    観点の定義は[著者のリポジトリ](https://github.com/nlpyang/geval)（MIT License）のプロンプトを訳したもの。記事と要約は架空のものです
 - 「画像」の付いた問いは、商品写真を添付したとき（ボタンから選ぶか、コピーして貼り付け）だけ判定します。
   画像の判定は Decisions API のみです（Jev は画像入力に非対応）
 - 選ばれた選択肢、選択肢ごとの確率、Confidence、応答時間、モデル名（レスポンスに含まれる実際の値）、

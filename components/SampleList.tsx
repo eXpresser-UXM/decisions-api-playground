@@ -83,7 +83,7 @@ export function SampleList({ onPick }: Props) {
                 {g.samples.map((s) => (
                   <Chip
                     key={s.text}
-                    label={s.text}
+                    label={s.label ?? s.text}
                     title={s.note}
                     variant="outlined"
                     onClick={() => {

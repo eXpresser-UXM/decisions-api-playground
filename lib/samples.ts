@@ -11,7 +11,8 @@ export type SampleGroup = {
   /** 各社の公式ドキュメントの例をもとにしたグループの出典 */
   source?: { label: string; url: string }
   questions: Question[]
-  samples: { text: string; note: string }[]
+  /** label：ボタンに出す短い名前（State が長いとき用。なければ text をそのまま出す） */
+  samples: { text: string; note: string; label?: string }[]
 }
 
 // ---- 社内ITヘルプデスク ----
@@ -288,6 +289,68 @@ const OPENAI_GUIDE_QUESTIONS: Question[] = [
   },
 ]
 
+// ---- G-Eval（Liu et al., 2023, https://arxiv.org/abs/2303.16634）の要約評価の4観点を日本語に訳したもの ----
+// 観点の定義は著者のリポジトリ（https://github.com/nlpyang/geval、MIT License）の
+// SummEval 用プロンプト（prompts/summeval/*_detailed.txt）による。
+// 1〜5（Fluency は1〜3）のうち、定義があるのは両端（Fluency は全段階）だけなので、途中の段階は説明を空にした。
+// G-Eval の最終スコアは Σ p(点数)×点数。このアプリの Score は段階の番号が0から始まるため「表示値＋1」が G-Eval のスコアになる
+const GEVAL_INSTRUCTIONS_NOTE = 'State の【要約】を【元の記事】と比べて評価する。'
+const GEVAL_QUESTIONS: Question[] = [
+  {
+    kind: 'score',
+    name: 'coherence',
+    instructions: `${GEVAL_INSTRUCTIONS_NOTE}Coherence（一貫性）：すべての文がまとまった全体としての質。要約はよく構成・整理されているべきで、関連情報の寄せ集めではなく、文から文へと積み上げて、1つの話題についてまとまった情報になっているべきである。`,
+    levels: [
+      { label: '1', description: '最低：関連する情報の寄せ集めで、まとまった内容になっていない' },
+      { label: '2', description: '' },
+      { label: '3', description: '' },
+      { label: '4', description: '' },
+      { label: '5', description: '最高：よく構成・整理され、筋道立ててまとまっている' },
+    ],
+  },
+  {
+    kind: 'score',
+    name: 'consistency',
+    instructions: `${GEVAL_INSTRUCTIONS_NOTE}Consistency（事実の整合性）：要約と元の記事の事実が一致しているか。事実に整合した要約は、元の記事から導ける内容だけを含む。元の記事にない事実（ハルシネーション）を含む要約は減点する。`,
+    levels: [
+      { label: '1', description: '最低：元の記事にない事実や、記事と食い違う内容を含む' },
+      { label: '2', description: '' },
+      { label: '3', description: '' },
+      { label: '4', description: '' },
+      { label: '5', description: '最高：元の記事から導ける内容だけでできている' },
+    ],
+  },
+  {
+    kind: 'score',
+    name: 'fluency',
+    instructions: `${GEVAL_INSTRUCTIONS_NOTE}Fluency（流暢さ）：文法・つづり（表記）・句読点・言葉の選び方・文の構造の点から見た要約の質。`,
+    levels: [
+      { label: '1', description: '悪い：誤りが多く、理解しにくい、または不自然に聞こえる' },
+      { label: '2', description: 'まあまあ：わかりやすさや滑らかさに影響する誤りがいくつかあるが、要点は理解できる' },
+      { label: '3', description: '良い：誤りがほとんどなく、読みやすく、わかりやすい' },
+    ],
+  },
+  {
+    kind: 'score',
+    name: 'relevance',
+    instructions: `${GEVAL_INSTRUCTIONS_NOTE}Relevance（関連性）：元の記事から重要な内容を選べているか。要約は元の記事の重要な情報だけを含むべきで、重複や余計な情報を含む要約は減点する。`,
+    levels: [
+      { label: '1', description: '最低：重要な点を外し、重複や余計な情報が多い' },
+      { label: '2', description: '' },
+      { label: '3', description: '' },
+      { label: '4', description: '' },
+      { label: '5', description: '最高：重要な情報だけを過不足なく含む' },
+    ],
+  },
+]
+
+// G-Eval のサンプル用の架空の記事（実在の自治体・施設ではない）
+const GEVAL_ARTICLE =
+  '架空の青葉市は、市立中央図書館の開館時間を4月1日から延長すると発表した。平日の閉館時間を午後7時から午後9時に変更し、仕事帰りの利用者が使いやすくする。' +
+  '延長に合わせて、自習スペースの席数を40席から80席に増やす。費用は年間約1,200万円で、市の一般会計から支出する。' +
+  '市の担当者は「学生や社会人の学びの場を広げたい」と話している。なお、日曜日の開館時間は変わらない。'
+const gevalState = (summary: string) => `【元の記事】\n${GEVAL_ARTICLE}\n\n【要約】\n${summary}`
+
 export const SAMPLE_GROUPS: SampleGroup[] = [
   {
     title: '架空ネット書店の問い合わせ分類',
@@ -409,6 +472,45 @@ export const SAMPLE_GROUPS: SampleGroup[] = [
       { text: 'Safari ではエクスポートに失敗しますが、Chrome ではできます。', note: 'ガイドの例。期待：technical、回避策あり' },
       { text: '荷物が1週間、配送中のまま止まっています。', note: '期待：shipping' },
       { text: 'マグカップが割れた状態で届きました。', note: '商品写真を添付して試す（visible_damage も判定）' },
+    ],
+  },
+  {
+    title: '【G-Eval】要約の品質評価（SummEval の4観点）',
+    description:
+      'LLM で生成文を評価する G-Eval の観点を、Score で再現する。同じ架空の記事に対する要約の良し悪しを比べる。' +
+      'G-Eval のスコア（Σ 確率×点数）は、このアプリの Score の表示値＋1（段階の番号が0から始まるため）',
+    source: { label: 'G-Eval (Liu et al., 2023)', url: 'https://arxiv.org/abs/2303.16634' },
+    questions: GEVAL_QUESTIONS,
+    samples: [
+      {
+        label: '良い要約',
+        text: gevalState(
+          '青葉市は4月1日から市立中央図書館の平日の閉館時間を午後9時まで延長し、自習スペースも80席に増やす。仕事帰りの社会人や学生の利用を広げるのがねらい。',
+        ),
+        note: '期待：4観点とも高い',
+      },
+      {
+        label: '事実と違う要約',
+        text: gevalState('青葉市は4月1日から市立中央図書館を24時間開館にする。費用はすべて国が負担する。'),
+        note: '期待：consistency が低い（記事にない事実）',
+      },
+      {
+        label: '文法が崩れた要約',
+        text: gevalState('青葉市 図書館の 時間を、延長するのは4月の 9時まで平日 を、席は 増える80 自習。'),
+        note: '期待：fluency が低い',
+      },
+      {
+        label: 'どうでもいい情報ばかりの要約',
+        text: gevalState(
+          '青葉市の図書館の日曜日の開館時間は変わらない。市には一般会計がある。市の担当者は話している。市の担当者は話している。',
+        ),
+        note: '期待：relevance が低い（重要な点を外し、重複がある）',
+      },
+      {
+        label: '寄せ集めの要約',
+        text: gevalState('自習スペースは80席。午後9時。青葉市。費用は1,200万円。仕事帰り。図書館。'),
+        note: '期待：coherence が低い（情報の寄せ集め）',
+      },
     ],
   },
 ]
