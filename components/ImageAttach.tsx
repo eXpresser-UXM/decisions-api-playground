@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Stack from '@mui/material/Stack'
@@ -26,19 +26,35 @@ const fmtBytes = (n: number) => (n < 1024 * 1024 ? `${(n / 1024).toFixed(0)} KB`
 export function ImageAttach({ image, onChange }: Props) {
   const [error, setError] = useState<string | null>(null)
 
-  const pick = async (file: File | undefined) => {
-    setError(null)
-    if (!file) return
-    if (!file.type.startsWith('image/')) {
-      setError('画像ファイルを選んでください')
-      return
+  const pick = useCallback(
+    async (file: File | undefined, name?: string) => {
+      setError(null)
+      if (!file) return
+      if (!file.type.startsWith('image/')) {
+        setError('画像ファイルを選んでください')
+        return
+      }
+      try {
+        onChange({ name: name ?? file.name, dataUrl: await readAsDataUrl(file), bytes: file.size })
+      } catch {
+        setError('画像を読み込めませんでした')
+      }
+    },
+    [onChange],
+  )
+
+  // コピペでの貼り付け（判定画面を表示している間、どこで Ctrl+V / ⌘V しても受け付ける）。
+  // クリップボードに画像があるときだけ横取りし、文字の貼り付けはそのまま通す
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const file = [...(e.clipboardData?.files ?? [])].find((f) => f.type.startsWith('image/'))
+      if (!file) return
+      e.preventDefault()
+      void pick(file, `貼り付けた画像（${file.type.replace('image/', '')}）`)
     }
-    try {
-      onChange({ name: file.name, dataUrl: await readAsDataUrl(file), bytes: file.size })
-    } catch {
-      setError('画像を読み込めませんでした')
-    }
-  }
+    window.addEventListener('paste', onPaste)
+    return () => window.removeEventListener('paste', onPaste)
+  }, [pick])
 
   return (
     <Stack direction="row" spacing={2} sx={{ alignItems: 'center', flexWrap: 'wrap' }} useFlexGap>
@@ -75,7 +91,8 @@ export function ImageAttach({ image, onChange }: Props) {
         </Stack>
       ) : (
         <Typography variant="body2" color="text.secondary">
-          画像を添付すると、visible_damage と damage_level を Decisions API で判定します（Jev は画像非対応）
+          ボタンから選ぶか、画像をコピーしてこの画面に貼り付け（Ctrl+V / ⌘V）できます。添付すると visible_damage と
+          damage_level を Decisions API で判定します（Jev は画像非対応）
         </Typography>
       )}
       {error && (
