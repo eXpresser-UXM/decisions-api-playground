@@ -96,6 +96,8 @@ cp .env.sample .env
 
 ### Vercel で公開する場合
 
+- リポジトリの `vercel.json` で Framework Preset を Next.js に固定しています。プロジェクトの設定で
+  Output Directory を上書きしていると「No Output Directory named "dist" found」で失敗するので、上書きはオフにしてください。
 - **画面で入力したキーは、公開したアプリのサーバー（Vercel Functions）を経由して各社に送られます。**
   コードではキーを保存・ログ出力しませんが、利用者から見ると他人のサーバーにキーを渡すことになります。
   設定画面にも「使い終わったら、そのAPIキーはすぐに削除（無効化）してください」と表示しています。
