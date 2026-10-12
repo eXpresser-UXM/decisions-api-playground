@@ -289,67 +289,49 @@ const OPENAI_GUIDE_QUESTIONS: Question[] = [
   },
 ]
 
-// ---- G-Eval（Liu et al., 2023, https://arxiv.org/abs/2303.16634）の要約評価の4観点を日本語に訳したもの ----
-// 観点の定義は著者のリポジトリ（https://github.com/nlpyang/geval、MIT License）の
-// SummEval 用プロンプト（prompts/summeval/*_detailed.txt）による。
-// 1〜5（Fluency は1〜3）のうち、定義があるのは両端（Fluency は全段階）だけなので、途中の段階は説明を空にした。
-// G-Eval の最終スコアは Σ p(点数)×点数。このアプリの Score は段階の番号が0から始まるため「表示値＋1」が G-Eval のスコアになる
-const GEVAL_INSTRUCTIONS_NOTE = 'State の【要約】を【元の記事】と比べて評価する。'
+// ---- G-Eval（DeepEval 形式：質問・AI回答・想定回答）----
+// G-Eval（Liu et al., 2023, https://arxiv.org/abs/2303.16634）は評価のやり方で、
+// DeepEval（https://deepeval.com/docs/metrics-llm-evals）はそれを「観点と入力（質問・AI回答・想定回答など）を選べる」形で実装している。
+// correctness の基準は DeepEval の Correctness の例を訳したもの。completeness と contradiction はこのアプリで足した観点で、段階の説明もこのアプリで作成した
+const GEVAL_INSTRUCTIONS_NOTE = 'State の【質問】【AI回答】【想定回答】を読んで評価する。'
 const GEVAL_QUESTIONS: Question[] = [
   {
     kind: 'score',
-    name: 'coherence',
-    instructions: `${GEVAL_INSTRUCTIONS_NOTE}Coherence（一貫性）：すべての文がまとまった全体としての質。要約はよく構成・整理されているべきで、関連情報の寄せ集めではなく、文から文へと積み上げて、1つの話題についてまとまった情報になっているべきである。`,
+    name: 'correctness',
+    instructions: `${GEVAL_INSTRUCTIONS_NOTE}想定回答に照らして、AI回答が事実として正しいかを判断する。言い回しの違いは問わない。`,
     levels: [
-      { label: '1', description: '最低：関連する情報の寄せ集めで、まとまった内容になっていない' },
-      { label: '2', description: '' },
-      { label: '3', description: '' },
-      { label: '4', description: '' },
-      { label: '5', description: '最高：よく構成・整理され、筋道立ててまとまっている' },
+      { label: '誤り', description: '想定回答と食い違う、または事実として誤った内容が中心になっている' },
+      { label: '一部誤り', description: '正しい内容もあるが、重要な点に誤りがある' },
+      { label: 'おおむね正しい', description: '重要な点は正しいが、細かい誤りや不正確な表現がある' },
+      { label: '正しい', description: '想定回答と同じ事実を述べており、誤りがない' },
     ],
   },
   {
     kind: 'score',
-    name: 'consistency',
-    instructions: `${GEVAL_INSTRUCTIONS_NOTE}Consistency（事実の整合性）：要約と元の記事の事実が一致しているか。事実に整合した要約は、元の記事から導ける内容だけを含む。元の記事にない事実（ハルシネーション）を含む要約は減点する。`,
+    name: 'completeness',
+    instructions: `${GEVAL_INSTRUCTIONS_NOTE}想定回答に含まれる要点を、AI回答がどれだけ含んでいるかを判断する。`,
     levels: [
-      { label: '1', description: '最低：元の記事にない事実や、記事と食い違う内容を含む' },
-      { label: '2', description: '' },
-      { label: '3', description: '' },
-      { label: '4', description: '' },
-      { label: '5', description: '最高：元の記事から導ける内容だけでできている' },
+      { label: 'ほぼ含まない', description: '想定回答の要点をほとんど含んでいない' },
+      { label: '一部', description: '要点の一部だけを含み、重要な点が抜けている' },
+      { label: 'ほぼすべて', description: '重要な要点は含んでいるが、細かい点が抜けている' },
+      { label: 'すべて', description: '想定回答の要点をすべて含んでいる' },
     ],
   },
   {
-    kind: 'score',
-    name: 'fluency',
-    instructions: `${GEVAL_INSTRUCTIONS_NOTE}Fluency（流暢さ）：文法・つづり（表記）・句読点・言葉の選び方・文の構造の点から見た要約の質。`,
-    levels: [
-      { label: '1', description: '悪い：誤りが多く、理解しにくい、または不自然に聞こえる' },
-      { label: '2', description: 'まあまあ：わかりやすさや滑らかさに影響する誤りがいくつかあるが、要点は理解できる' },
-      { label: '3', description: '良い：誤りがほとんどなく、読みやすく、わかりやすい' },
-    ],
-  },
-  {
-    kind: 'score',
-    name: 'relevance',
-    instructions: `${GEVAL_INSTRUCTIONS_NOTE}Relevance（関連性）：元の記事から重要な内容を選べているか。要約は元の記事の重要な情報だけを含むべきで、重複や余計な情報を含む要約は減点する。`,
-    levels: [
-      { label: '1', description: '最低：重要な点を外し、重複や余計な情報が多い' },
-      { label: '2', description: '' },
-      { label: '3', description: '' },
-      { label: '4', description: '' },
-      { label: '5', description: '最高：重要な情報だけを過不足なく含む' },
-    ],
+    kind: 'predicate',
+    name: 'contradiction',
+    instructions: `${GEVAL_INSTRUCTIONS_NOTE}AI回答に、想定回答と食い違う内容が含まれているか？`,
+    whenTrue: '想定回答と矛盾する条件・数字・手順などが書かれている',
+    whenFalse: '想定回答と矛盾する内容はない（足りない点があるだけなら いいえ）',
   },
 ]
 
-// G-Eval のサンプル用の架空の記事（実在の自治体・施設ではない）
-const GEVAL_ARTICLE =
-  '架空の青葉市は、市立中央図書館の開館時間を4月1日から延長すると発表した。平日の閉館時間を午後7時から午後9時に変更し、仕事帰りの利用者が使いやすくする。' +
-  '延長に合わせて、自習スペースの席数を40席から80席に増やす。費用は年間約1,200万円で、市の一般会計から支出する。' +
-  '市の担当者は「学生や社会人の学びの場を広げたい」と話している。なお、日曜日の開館時間は変わらない。'
-const gevalState = (summary: string) => `【元の記事】\n${GEVAL_ARTICLE}\n\n【要約】\n${summary}`
+// G-Eval のサンプル用の架空の FAQ（実在の店舗・規約ではない）
+const GEVAL_QUESTION = '注文した本のキャンセルは、いつまでできますか？'
+const GEVAL_EXPECTED =
+  '発送準備に入る前であれば、マイページの注文履歴からキャンセルできます。発送準備に入った後はキャンセルできないため、商品が届いてから返品の手続きをしてください。'
+const gevalState = (answer: string) =>
+  `【質問】\n${GEVAL_QUESTION}\n\n【AI回答】\n${answer}\n\n【想定回答】\n${GEVAL_EXPECTED}`
 
 export const SAMPLE_GROUPS: SampleGroup[] = [
   {
@@ -475,41 +457,41 @@ export const SAMPLE_GROUPS: SampleGroup[] = [
     ],
   },
   {
-    title: '【G-Eval】要約の品質評価（SummEval の4観点）',
+    title: '【G-Eval】回答の正確さの評価（DeepEval 形式：質問・AI回答・想定回答）',
     description:
-      'LLM で生成文を評価する G-Eval の観点を、Score で再現する。同じ架空の記事に対する要約の良し悪しを比べる。' +
-      'G-Eval のスコア（Σ 確率×点数）は、このアプリの Score の表示値＋1（段階の番号が0から始まるため）',
-    source: { label: 'G-Eval (Liu et al., 2023)', url: 'https://arxiv.org/abs/2303.16634' },
+      'LLM の回答を、想定回答（正解）と比べて評価する G-Eval の使い方。架空ネット書店の FAQ ボットの回答5種類を比べる。' +
+      'correctness は DeepEval の Correctness の基準を訳したもの、completeness と contradiction はこのアプリで足した観点',
+    source: { label: 'DeepEval: G-Eval', url: 'https://deepeval.com/docs/metrics-llm-evals' },
     questions: GEVAL_QUESTIONS,
     samples: [
       {
-        label: '良い要約',
+        label: '正しい回答',
         text: gevalState(
-          '青葉市は4月1日から市立中央図書館の平日の閉館時間を午後9時まで延長し、自習スペースも80席に増やす。仕事帰りの社会人や学生の利用を広げるのがねらい。',
+          '発送準備に入る前なら、マイページの注文履歴からキャンセルできます。発送準備に入った後はキャンセルできませんので、商品の到着後に返品手続きをお願いします。',
         ),
-        note: '期待：4観点とも高い',
+        note: '期待：correctness・completeness が高い、contradiction が低い',
       },
       {
-        label: '事実と違う要約',
-        text: gevalState('青葉市は4月1日から市立中央図書館を24時間開館にする。費用はすべて国が負担する。'),
-        note: '期待：consistency が低い（記事にない事実）',
-      },
-      {
-        label: '文法が崩れた要約',
-        text: gevalState('青葉市 図書館の 時間を、延長するのは4月の 9時まで平日 を、席は 増える80 自習。'),
-        note: '期待：fluency が低い',
-      },
-      {
-        label: 'どうでもいい情報ばかりの要約',
+        label: '言い回しは違うが正しい回答',
         text: gevalState(
-          '青葉市の図書館の日曜日の開館時間は変わらない。市には一般会計がある。市の担当者は話している。市の担当者は話している。',
+          'まだ発送の準備が始まっていなければ、注文履歴の画面から取り消せます。準備が始まってからは取り消せないので、届いた後に返品の手続きをしてください。',
         ),
-        note: '期待：relevance が低い（重要な点を外し、重複がある）',
+        note: '期待：正しい回答と同じくらい高い（文字ではなく意味で判定できているか）',
       },
       {
-        label: '寄せ集めの要約',
-        text: gevalState('自習スペースは80席。午後9時。青葉市。費用は1,200万円。仕事帰り。図書館。'),
-        note: '期待：coherence が低い（情報の寄せ集め）',
+        label: '要点が不足した回答',
+        text: gevalState('マイページの注文履歴からキャンセルできます。'),
+        note: '期待：completeness が低い（発送準備後の扱いが抜けている）、contradiction は低い',
+      },
+      {
+        label: '誤った回答',
+        text: gevalState('注文から30日以内であれば、いつでもキャンセルできます。お電話でご連絡ください。'),
+        note: '期待：correctness が低い、contradiction が高い',
+      },
+      {
+        label: '質問に答えていない回答',
+        text: gevalState('当店では毎週新刊を入荷しています。ぜひご利用ください。'),
+        note: '期待：correctness・completeness が低い',
       },
     ],
   },
