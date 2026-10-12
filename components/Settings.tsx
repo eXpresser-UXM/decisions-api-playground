@@ -15,8 +15,8 @@ type Props = {
 
 /** 入力欄の下に出す、どのキーを使うかの説明 */
 function keySource(typed: string, inEnv: boolean) {
-  if (typed) return inEnv ? '画面で入力したキーを使用中（.env のキーより優先）' : '画面で入力したキーを使用中'
-  return inEnv ? '.env のキーを使用中（ここに入力すると、画面の値を優先します）' : 'キー未設定'
+  if (typed) return inEnv ? '画面で入力したキーを使用中（環境変数のキーより優先）' : '画面で入力したキーを使用中'
+  return inEnv ? '環境変数（.env）のキーを使用中（ここに入力すると、画面の値を優先します）' : 'キー未設定'
 }
 
 // 画面で入力したキーは React の state（メモリ）にのみ保持する。localStorage・sessionStorage・Cookie には保存しない。
@@ -30,11 +30,16 @@ export function Settings({ keys, envStatus, onChange }: Props) {
   return (
     <Stack spacing={3} sx={{ maxWidth: 640 }}>
       <Typography variant="h5">APIキーの設定</Typography>
+      <Alert severity="warning">
+        入力したAPIキーは、このアプリのサーバーを経由して各社の API に送られます。
+        キーを保存したり悪用したりすることはありませんが、
+        <strong>使い終わったら、そのAPIキーはすぐに削除（無効化）してください。</strong>
+        デモ専用のキーを作り、利用額の上限を設定しておくことをおすすめします。
+      </Alert>
       <Alert severity="info">
         画面で入力したキーはこのページのメモリにのみ保持し、再読み込みで消えます。
-        プロジェクト直下の .env にキーを書いておくと、それが初期値になります（画面で入力した値が優先）。
-        .env のキーはこのPCで動いている開発サーバーの中だけで使い、ブラウザには送りません。
-        デモ専用のキーを作り、利用額の上限を設定し、使用後は無効化してください。
+        サーバーの環境変数（ローカルなら .env）にキーがあれば、それが初期値になります（画面で入力した値が優先）。
+        環境変数のキーはサーバーの中だけで使い、ブラウザには送りません。
       </Alert>
       {fields.map((f) => (
         <TextField
@@ -44,7 +49,7 @@ export function Settings({ keys, envStatus, onChange }: Props) {
           autoComplete="off"
           value={keys[f.id]}
           onChange={(e) => onChange({ ...keys, [f.id]: e.target.value.trim() })}
-          placeholder={f.inEnv ? `.env の ${f.env} を使用中` : undefined}
+          placeholder={f.inEnv ? `環境変数（.env）の ${f.env} を使用中` : undefined}
           helperText={keySource(keys[f.id], f.inEnv)}
           slotProps={{ htmlInput: { spellCheck: false }, inputLabel: f.inEnv ? { shrink: true } : undefined }}
         />

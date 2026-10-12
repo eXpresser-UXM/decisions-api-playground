@@ -20,6 +20,19 @@ const readAsDataUrl = (file: File) =>
     reader.readAsDataURL(file)
   })
 
+// 画像サイズの目安。Vercel などのサーバーレス環境ではリクエスト本体に上限があり（Vercel Functions は 4.5MB）、
+// base64 にすると約1.33倍になるため、元の画像で 3MB 前後を超えると送れないことがある
+const RECOMMENDED_BYTES = 1024 * 1024
+const UNSTABLE_BYTES = 3 * 1024 * 1024
+
+function sizeLevel(bytes: number): { color: string; message: string } {
+  if (bytes > UNSTABLE_BYTES)
+    return { color: 'error.main', message: '3MBを超えています。送信に失敗することがあります。1MB以内に縮小してください' }
+  if (bytes > RECOMMENDED_BYTES)
+    return { color: 'warning.main', message: '1MBを超えています（1MB以内推奨）。画像の判定は Decisions API のみ' }
+  return { color: 'text.secondary', message: '画像の判定は Decisions API のみ' }
+}
+
 const fmtBytes = (n: number) => (n < 1024 * 1024 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`)
 
 // 返品・クレームの商品写真を想定。Decisions API には data URL（base64）で渡す
@@ -81,8 +94,8 @@ export function ImageAttach({ image, onChange }: Props) {
           />
           <Box>
             <Typography variant="body2">{image.name}</Typography>
-            <Typography variant="caption" color="text.secondary">
-              {fmtBytes(image.bytes)}・画像の判定は Decisions API のみ
+            <Typography variant="caption" component="div" sx={{ color: sizeLevel(image.bytes).color }}>
+              {fmtBytes(image.bytes)}・{sizeLevel(image.bytes).message}
             </Typography>
           </Box>
           <Button size="small" onClick={() => onChange(null)}>
@@ -92,7 +105,8 @@ export function ImageAttach({ image, onChange }: Props) {
       ) : (
         <Typography variant="body2" color="text.secondary">
           ボタンから選ぶか、画像をコピーしてこの画面に貼り付け（Ctrl+V / ⌘V）できます。添付すると「画像」の付いた問いも
-          Decisions API で判定します（Jev は画像非対応）
+          Decisions API で判定します（Jev は画像非対応）。
+          <strong>画像は1MB以内を推奨</strong>します。3MB前後を超えると、送信に失敗するなど動作が不安定になります。
         </Typography>
       )}
       {error && (

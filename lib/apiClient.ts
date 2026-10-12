@@ -47,7 +47,15 @@ async function runOne<Res>(job: ApiJob<Res>, onUpdate: (id: ApiId, result: ApiRe
       envelope = {
         ok: false,
         ms: null,
-        error: { status: res.status, message: '中継サーバーから想定外の応答がありました', body: res.data },
+        error: {
+          status: res.status,
+          // 413：Vercel などでリクエスト本体の上限（Vercel Functions は 4.5MB）を超えた。たいていは画像が大きすぎる
+          message:
+            res.status === 413
+              ? 'リクエストが大きすぎて送信できませんでした。画像を1MB以内に縮小してから試してください'
+              : '中継サーバーから想定外の応答がありました',
+          body: res.data,
+        },
       }
     }
   } catch (e) {
