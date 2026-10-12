@@ -23,6 +23,11 @@ DX道場（2026/10/14）のデモ用に作りました。
   - 商品レビューの分析：満足度（5段階）、話題、他の人に勧めているか
   - メールの返信要否・優先度：返信が必要か、優先度、種類
   - 英語の問い合わせ分類：書店の問いの英語版（Jev の主な学習言語は英語のため、日本語との違いを比べられます）
+  - 各社の公式ドキュメントの例をもとにしたサンプル（画面に出典のリンクを表示します）
+    - TypeSafe：[Intent routing](https://docs.typesafe.ai/patterns/intent-routing)、
+      [Guardrails for LLMs](https://docs.typesafe.ai/cookbooks/llm_guardrails)（入力側の問い。自傷に関する問いは除外）、
+      [Smart home assistant demo](https://docs.typesafe.ai/demos/smart-home)（説明をもとに問いを作成）
+    - OpenAI：[Decisions API ガイド](https://developers.openai.com/api/docs/guides/decisions)の部署の振り分け・深刻度・商品写真の破損
 - 「画像」の付いた問いは、商品写真を添付したとき（ボタンから選ぶか、コピーして貼り付け）だけ判定します。
   画像の判定は Decisions API のみです（Jev は画像入力に非対応）
 - 選ばれた選択肢、選択肢ごとの確率、Confidence、応答時間、モデル名（レスポンスに含まれる実際の値）、

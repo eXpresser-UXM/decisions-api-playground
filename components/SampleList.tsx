@@ -5,6 +5,7 @@ import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Drawer from '@mui/material/Drawer'
 import IconButton from '@mui/material/IconButton'
+import Link from '@mui/material/Link'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
@@ -48,7 +49,7 @@ export function SampleList({ onPick }: Props) {
               サンプル一覧
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              選ぶと State（問い合わせ文）と Questions の両方が置き換わります。文章はすべて架空のものです
+              選ぶと State（問い合わせ文）と Questions の両方が置き換わります。文章は架空のもの、または各社ドキュメントの例です
             </Typography>
           </Box>
           <IconButton aria-label="閉じる" onClick={() => setOpen(false)}>
@@ -65,6 +66,14 @@ export function SampleList({ onPick }: Props) {
               <Typography variant="caption" color="text.secondary" component="div">
                 {g.description}
               </Typography>
+              {g.source && (
+                <Typography variant="caption" component="div">
+                  出典：
+                  <Link href={g.source.url} target="_blank" rel="noopener noreferrer">
+                    {g.source.label}
+                  </Link>
+                </Typography>
+              )}
               <Typography variant="caption" color="text.secondary" component="div" sx={{ mb: 1, fontFamily: 'monospace' }}>
                 Questions：{g.questions.map((q) => q.name).join(', ')}
               </Typography>
