@@ -63,14 +63,26 @@ export const IMAGE_QUESTIONS: Question[] = [VISIBLE_DAMAGE, DAMAGE_LEVEL]
 /** 画面の Questions の初期値（画面で追加・編集・削除できる。再読み込みでこの値に戻る） */
 export const DEFAULT_QUESTIONS: Question[] = [...TEXT_QUESTIONS, ...IMAGE_QUESTIONS]
 
-/** サンプル：押すと State（問い合わせ文）と Questions の両方を置き換える */
-export type Sample = { text: string; note: string; questions: Question[] }
+/**
+ * サンプルのグループ。同じ Questions を使うサンプルをひとくくりにする。
+ * サンプルを押すと State（問い合わせ文）とグループの Questions の両方を置き換える
+ */
+export type SampleGroup = {
+  title: string
+  questions: Question[]
+  samples: { text: string; note: string }[]
+}
 
 // 動作確認用の入力（架空のポチッとモールの問い合わせ）
-export const SAMPLES: Sample[] = [
-  { text: 'キャンセルの条件を教えてください', note: '期待：faq', questions: DEFAULT_QUESTIONS },
-  { text: '注文をキャンセルしたいです', note: '期待：order', questions: DEFAULT_QUESTIONS },
-  { text: '頼んだ本がまだ届かないんですけど！', note: '期待：delivery', questions: DEFAULT_QUESTIONS },
-  { text: '届いた本が注文と違う', note: '正解が一つに決まらない', questions: DEFAULT_QUESTIONS },
+export const SAMPLE_GROUPS: SampleGroup[] = [
+  {
+    title: '架空ネット書店の問い合わせ分類',
+    questions: DEFAULT_QUESTIONS,
+    samples: [
+      { text: 'キャンセルの条件を教えてください', note: '期待：faq' },
+      { text: '注文をキャンセルしたいです', note: '期待：order' },
+      { text: '頼んだ本がまだ届かないんですけど！', note: '期待：delivery' },
+      { text: '届いた本が注文と違う', note: '正解が一つに決まらない' },
+    ],
+  },
 ]
-

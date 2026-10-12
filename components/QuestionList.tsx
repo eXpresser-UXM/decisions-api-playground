@@ -11,6 +11,7 @@ import { DEFAULT_QUESTIONS } from '@/lib/questions'
 import type { Question } from '@/lib/types'
 import { KIND_LABEL, QuestionEditor } from './QuestionEditor'
 import { QuestionsJsonDialog } from './QuestionsJsonDialog'
+import { SectionTitle } from './SectionTitle'
 
 type Props = {
   questions: Question[]
@@ -55,22 +56,28 @@ export function QuestionList({ questions, onChange }: Props) {
 
   return (
     <Paper variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Stack direction="row" sx={{ alignItems: 'center', px: 2, py: 1, borderBottom: 1, borderColor: 'divider' }}>
-        <Typography variant="subtitle2" sx={{ flex: 1 }}>
-          Questions（{questions.length}）
+      <SectionTitle
+        action={
+          <>
+            <Button size="small" onClick={() => onChange(DEFAULT_QUESTIONS)}>
+              初期値に戻す
+            </Button>
+            <Button size="small" variant="contained" onClick={() => open({ index: null })} sx={{ ml: 1 }}>
+              ＋ 追加
+            </Button>
+            <Button size="small" variant="outlined" onClick={() => setJsonOpen(true)} sx={{ ml: 1 }}>
+              JSON
+            </Button>
+          </>
+        }
+      >
+        Questions（回答形式）
+        <Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+          {questions.length}問
         </Typography>
-        <Button size="small" onClick={() => onChange(DEFAULT_QUESTIONS)}>
-          初期値に戻す
-        </Button>
-        <Button size="small" variant="contained" onClick={() => open({ index: null })} sx={{ ml: 1 }}>
-          ＋ 追加
-        </Button>
-        <Button size="small" variant="outlined" onClick={() => setJsonOpen(true)} sx={{ ml: 1 }}>
-          JSON
-        </Button>
-      </Stack>
+      </SectionTitle>
 
-      <Box sx={{ flex: 1, overflowY: 'auto', maxHeight: 320 }}>
+      <Box sx={{ flex: 1, overflowY: 'auto', maxHeight: 480 }}>
         {questions.length === 0 && (
           <Typography color="text.secondary" variant="body2" sx={{ p: 2 }}>
             問いがありません。「＋ 追加」から追加してください。

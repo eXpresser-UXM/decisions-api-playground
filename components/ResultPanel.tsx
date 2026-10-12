@@ -11,7 +11,7 @@ import LinearProgress from '@mui/material/LinearProgress'
 import Link from '@mui/material/Link'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import type { Answer, ApiResult, Pricing, Probability } from '@/lib/types'
+import type { Answer, ApiResult, Pricing, Probability, Question } from '@/lib/types'
 import { JsonModal } from './JsonModal'
 
 type Props = {
@@ -19,8 +19,8 @@ type Props = {
   result: ApiResult
   /** タイトル下に小さく出す注意書き */
   note?: ReactNode
-  /** 判定する問いの数（行をそろえるために使う） */
-  questionCount: number
+  /** 判定した問い（行をそろえるため、また問いや選択肢の説明を出すために使う） */
+  questions: Question[]
   /** 推定課金額の単価と、その根拠の公式ドキュメント */
   pricing: Pricing
 }
@@ -28,28 +28,45 @@ type Props = {
 const pct = (p: number) => `${(p * 100).toFixed(1)}%`
 const msText = (ms: number) => `${ms.toFixed(0)} ms`
 
-function Bars({ items, highlight }: { items: Probability[]; highlight?: string }) {
+type BarItem = Probability & { description?: string }
+
+/** 1行1文字列で、はみ出たら「…」で省略する（全文はマウスを乗せると出る） */
+function OneLine({ children, sx }: { children: string; sx?: object }) {
+  return (
+    <Typography variant="body2" color="text.secondary" noWrap title={children} sx={{ minWidth: 0, ...sx }}>
+      {children}
+    </Typography>
+  )
+}
+
+function Bars({ items, highlight }: { items: BarItem[]; highlight?: string }) {
   return (
     <Stack spacing={0.75}>
       {items.map((p) => {
         const top = p.key === highlight
         return (
-          <Stack key={p.key} direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          <Stack key={p.key} direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
             <Typography
               variant="body2"
+              noWrap
+              title={p.label}
               sx={{ width: 120, flexShrink: 0, fontWeight: top ? 700 : 400, fontFamily: 'monospace' }}
             >
               {p.label}
             </Typography>
-            <LinearProgress
-              variant="determinate"
-              value={Math.max(0, Math.min(1, p.probability)) * 100}
-              color={top ? 'primary' : 'inherit'}
-              sx={{ flex: 1, height: 10, borderRadius: 5 }}
-            />
-            <Typography variant="body2" sx={{ width: 56, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
-              {pct(p.probability)}
-            </Typography>
+            {/* グラフとパーセンテージは全体の半分程度に収め、残りに選択肢の説明を出す */}
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', width: '45%', flexShrink: 0 }}>
+              <LinearProgress
+                variant="determinate"
+                value={Math.max(0, Math.min(1, p.probability)) * 100}
+                color={top ? 'primary' : 'inherit'}
+                sx={{ flex: 1, height: 10, borderRadius: 5 }}
+              />
+              <Typography variant="body2" sx={{ width: 52, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                {pct(p.probability)}
+              </Typography>
+            </Stack>
+            <OneLine sx={{ flex: 1 }}>{p.description ?? ''}</OneLine>
           </Stack>
         )
       })}
@@ -57,14 +74,18 @@ function Bars({ items, highlight }: { items: Probability[]; highlight?: string }
   )
 }
 
-function AnswerHead({ name, kind }: { name: string; kind: string }) {
+function AnswerHead({ name, kind, question }: { name: string; kind: string; question?: Question }) {
   return (
-    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
-      <Typography component="code" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
-        {name}
-      </Typography>
-      <Chip size="small" label={kind} variant="outlined" />
-    </Stack>
+    <Box sx={{ mb: 1 }}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+        <Typography component="code" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
+          {name}
+        </Typography>
+        <Chip size="small" label={kind} variant="outlined" />
+      </Stack>
+      {/* その問いが何を聞いているかを1行で出す */}
+      {question && <OneLine sx={{ mt: 0.5 }}>{question.instructions}</OneLine>}
+    </Box>
   )
 }
 
@@ -81,48 +102,67 @@ function Main({ value, sub }: { value: string; sub: string }) {
   )
 }
 
-function AnswerView({ answer }: { answer: Answer }) {
+/** 確率の各行に、問いの定義から選択肢（段階）の説明を付ける */
+function withDescriptions(items: Probability[], q: Question | undefined): BarItem[] {
+  if (q?.kind === 'choice') return items.map((p) => ({ ...p, description: q.options.find((o) => o.value === p.key)?.description }))
+  if (q?.kind === 'score') return items.map((p) => ({ ...p, description: q.levels[Number(p.key)]?.description }))
+  return items
+}
+
+function AnswerView({ answer, question }: { answer: Answer; question?: Question }) {
   switch (answer.kind) {
     case 'choice':
       return (
         <Box>
-          <AnswerHead name={answer.name} kind="Choice" />
+          <AnswerHead name={answer.name} kind="Choice" question={question} />
           <Main value={answer.choice} sub={`Confidence ${answer.confidence.toFixed(3)}`} />
-          <Bars items={answer.probabilities} highlight={answer.choice} />
+          <Bars items={withDescriptions(answer.probabilities, question)} highlight={answer.choice} />
         </Box>
       )
     case 'score': {
       const top = answer.probabilities.reduce((a, b) => (b.probability > a.probability ? b : a))
       return (
         <Box>
-          <AnswerHead name={answer.name} kind="Score" />
+          <AnswerHead name={answer.name} kind="Score" question={question} />
           <Main
             value={answer.score.toFixed(2)}
             sub={`最も確率が高い段階：${top.label}（${top.key}）　Confidence ${answer.confidence.toFixed(3)}`}
           />
-          <Bars items={answer.probabilities.map((p) => ({ ...p, label: `${p.key}: ${p.label}` }))} highlight={top.key} />
+          <Bars
+            items={withDescriptions(answer.probabilities, question).map((p) => ({ ...p, label: `${p.key}: ${p.label}` }))}
+            highlight={top.key}
+          />
         </Box>
       )
     }
     case 'predicate':
       return (
         <Box>
-          <AnswerHead name={answer.name} kind="Noul / predicate" />
+          <AnswerHead name={answer.name} kind="Noul / predicate" question={question} />
           <Main value={pct(answer.probability)} sub="「はい」の確率" />
-          <Bars items={[{ key: 'yes', label: 'はい', probability: answer.probability }]} />
+          <Bars
+            items={[
+              {
+                key: 'yes',
+                label: 'はい',
+                probability: answer.probability,
+                description: question?.kind === 'predicate' ? question.whenTrue : undefined,
+              },
+            ]}
+          />
         </Box>
       )
     case 'refusal':
       return (
         <Box>
-          <AnswerHead name={answer.name} kind="refusal" />
+          <AnswerHead name={answer.name} kind="refusal" question={question} />
           <Typography color="text.secondary">回答が返りませんでした（refusal）。</Typography>
         </Box>
       )
     case 'unsupported':
       return (
         <Box>
-          <AnswerHead name={answer.name} kind="対象外" />
+          <AnswerHead name={answer.name} kind="対象外" question={question} />
           <Alert severity="info" variant="outlined">
             {answer.reason}
           </Alert>
@@ -156,10 +196,10 @@ function Stat({ label, children, sub }: { label: string; children: ReactNode; su
   )
 }
 
-export function ResultPanel({ title, result, note, questionCount, pricing }: Props) {
+export function ResultPanel({ title, result, note, questions, pricing }: Props) {
   const [open, setOpen] = useState(false)
   const hasJson = result.state === 'ok' || result.state === 'error' || result.state === 'loading'
-  const rows = panelRows(questionCount)
+  const rows = panelRows(questions.length)
   // 区切り線は各行の上に引く（CardContent ではなく行ごとに置くため）
   const rowSx = { px: 2, py: 2, borderTop: 1, borderColor: 'divider' }
 
@@ -220,7 +260,7 @@ export function ResultPanel({ title, result, note, questionCount, pricing }: Pro
           </Stack>
           {result.answers.map((a) => (
             <Box key={a.name} sx={rowSx}>
-              <AnswerView answer={a} />
+              <AnswerView answer={a} question={questions.find((q) => q.name === a.name)} />
             </Box>
           ))}
         </>
