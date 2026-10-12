@@ -268,7 +268,7 @@ export function ResultPanel({ title, result, note, questions, pricing }: Props) 
       ) : (
         <Box sx={{ ...rowSx, gridRow: `span ${rows - 1}` }}>
           {result.state === 'idle' && <Typography color="text.secondary">「判定する」を押すと結果が出ます。</Typography>}
-          {result.state === 'no-key' && <Alert severity="warning">キー未設定（呼び出していません）</Alert>}
+          {result.state === 'no-key' && <Alert severity="warning">キー未設定のため、呼び出していません。「設定」タブで APIキーを入力してください</Alert>}
           {result.state === 'unsupported' && <Alert severity="info">{result.reason}</Alert>}
           {result.state === 'loading' && (
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>

@@ -32,7 +32,7 @@ export function SampleList({ onPick }: Props) {
           サンプル一覧を開く
         </Button>
         <Typography variant="body2" color="text.secondary">
-          {SAMPLE_GROUPS.length}グループ・{sampleCount}件。選ぶと State（問い合わせ文）と Questions の両方が置き換わります
+          {SAMPLE_GROUPS.length}グループ・{sampleCount}件。選ぶと State（判定する文章）と Questions の両方が置き換わります
         </Typography>
       </Stack>
 
@@ -51,7 +51,7 @@ export function SampleList({ onPick }: Props) {
               サンプル一覧
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              選ぶと State（問い合わせ文）と Questions の両方が置き換わります。文章は架空のもの、または各社ドキュメントの例です
+              選ぶと State（判定する文章）と Questions の両方が置き換わります。文章は架空のもの、または各社ドキュメントの例です
             </Typography>
           </Box>
           <IconButton aria-label="閉じる" onClick={() => setOpen(false)}>

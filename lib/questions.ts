@@ -1,6 +1,7 @@
 import type { Question } from './types'
 
-// フェーズ1：route（Choice 1問）
+// 書店サンプル（架空ネット書店の問い合わせ分類）の問い。画面の Questions の初期値にもなる
+// route（Choice）
 export const ROUTE: Question = {
   kind: 'choice',
   name: 'route',
@@ -13,7 +14,7 @@ export const ROUTE: Question = {
   ],
 }
 
-// フェーズ2：attitude（Score）
+// attitude（Score）
 export const ATTITUDE: Question = {
   kind: 'score',
   name: 'attitude',
@@ -26,7 +27,7 @@ export const ATTITUDE: Question = {
   ],
 }
 
-// フェーズ2：needs_verification（Jev は Noul、Decisions API は predicate）
+// needs_verification（Jev は Noul、Decisions API は predicate）
 // Decisions API の predicate には true/false の補足欄がないため、whenTrue/whenFalse は instructions に含めて送る
 export const NEEDS_VERIFICATION: Question = {
   kind: 'predicate',
@@ -38,7 +39,7 @@ export const NEEDS_VERIFICATION: Question = {
 
 export const TEXT_QUESTIONS: Question[] = [ROUTE, ATTITUDE, NEEDS_VERIFICATION]
 
-// フェーズ3：画像の問い（Decisions API のみ。Jev は画像入力に非対応）
+// 画像の問い（Decisions API のみ。Jev は画像入力に非対応）
 export const VISIBLE_DAMAGE: Question = {
   kind: 'predicate',
   name: 'visible_damage',

@@ -37,7 +37,7 @@ function sizeLevel(bytes: number): { color: string; message: string } {
 
 const fmtBytes = (n: number) => (n < 1024 * 1024 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`)
 
-// 返品・クレームの商品写真を想定。Decisions API には data URL（base64）で渡す
+// 画像の問い（例：商品写真の破損の確認）用。Decisions API には data URL（base64）で渡す
 export function ImageAttach({ image, onChange }: Props) {
   const [error, setError] = useState<string | null>(null)
 
@@ -74,7 +74,7 @@ export function ImageAttach({ image, onChange }: Props) {
   return (
     <Stack direction="row" spacing={2} sx={{ alignItems: 'center', flexWrap: 'wrap' }} useFlexGap>
       <Button component="label" variant="outlined" startIcon={<AddPhotoAlternateIcon />}>
-        商品写真を添付
+        画像を添付
         <input
           hidden
           type="file"
@@ -91,7 +91,7 @@ export function ImageAttach({ image, onChange }: Props) {
           <Box
             component="img"
             src={image.dataUrl}
-            alt="添付した商品写真"
+            alt="添付した画像"
             sx={{ height: 56, maxWidth: 96, objectFit: 'cover', borderRadius: 1, border: 1, borderColor: 'divider' }}
           />
           <Box>

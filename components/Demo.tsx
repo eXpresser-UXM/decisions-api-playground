@@ -53,7 +53,11 @@ export function Demo() {
   // サーバーの設定（環境変数にキーがあるか・エンドポイント）。キーは画面で入力した値が優先
   const [envStatus, setEnvStatus] = useState<EnvStatus>(EMPTY_ENV_STATUS)
   useEffect(() => {
-    void fetchEnvStatus().then(setEnvStatus)
+    void fetchEnvStatus().then((status) => {
+      setEnvStatus(status)
+      // 環境変数に両方のキーがあれば、設定しなくても判定できるので判定タブから始める
+      if (status.openai && status.typesafe) setScreen((s) => (s === 'settings' ? 'judge' : s))
+    })
   }, [])
   const [text, setText] = useState('')
   const [results, setResults] = useState<Record<ApiId, ApiResult>>(IDLE)
@@ -134,7 +138,7 @@ export function Demo() {
               }}
             />
 
-            {/* 左：State（問い合わせ文＋画像）、右：Questions（回答形式） */}
+            {/* 左：State（判定する文章＋画像）、右：Questions（回答形式） */}
             <Box
               sx={{
                 display: 'grid',
@@ -145,15 +149,15 @@ export function Demo() {
               }}
             >
               <Paper variant="outlined" sx={{ display: 'flex', flexDirection: 'column' }}>
-                <SectionTitle>State（問い合わせ文）</SectionTitle>
+                <SectionTitle>State（判定する文章）</SectionTitle>
                 <Stack spacing={2} sx={{ p: 2, flex: 1 }}>
                   <TextField
                     multiline
                     minRows={6}
                     value={text}
                     onChange={(e) => setText(e.target.value)}
-                    placeholder="例：頼んだ本がまだ届かないんですけど！"
-                    slotProps={{ htmlInput: { 'aria-label': '問い合わせ文（State）' } }}
+                    placeholder="判定したい文章を入力するか、「サンプル一覧を開く」から選んでください"
+                    slotProps={{ htmlInput: { 'aria-label': '判定する文章（State）' } }}
                     sx={{ flex: 1, '& .MuiInputBase-root': { height: '100%', alignItems: 'flex-start' } }}
                   />
                   <ImageAttach image={image} onChange={setImage} />
@@ -164,8 +168,10 @@ export function Demo() {
 
             <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
               <Typography variant="body2" color="text.secondary">
-                {askedQuestions.length === 0
-                  ? '判定する問いがありません'
+                {!text.trim()
+                  ? 'State（判定する文章）を入力してください'
+                  : askedQuestions.length === 0
+                  ? '判定する問いがありません。Questions に問いを追加してください'
                   : `${askedQuestions.length}問を判定します` +
                     (questions.length > askedQuestions.length
                       ? `（画像の問い${questions.length - askedQuestions.length}問は、画像を添付すると判定します）`
