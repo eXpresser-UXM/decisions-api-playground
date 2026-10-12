@@ -1,8 +1,10 @@
 'use client'
-import Accordion from '@mui/material/Accordion'
-import AccordionDetails from '@mui/material/AccordionDetails'
-import AccordionSummary from '@mui/material/AccordionSummary'
+import { useState } from 'react'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
+import Drawer from '@mui/material/Drawer'
+import IconButton from '@mui/material/IconButton'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
@@ -13,23 +15,53 @@ type Props = {
   onPick: (text: string, group: SampleGroup) => void
 }
 
-// サンプル一覧（最初は畳んだ状態）。同じ Questions を使うサンプルをグループにまとめる
+const sampleCount = SAMPLE_GROUPS.reduce((n, g) => n + g.samples.length, 0)
+
+// サンプル一覧。ボタンを押すと右から Drawer で開く（画面全体は覆わない幅）。
+// 同じ Questions を使うサンプルをグループにまとめる
 export function SampleList({ onPick }: Props) {
+  const [open, setOpen] = useState(false)
+
   return (
-    <Accordion variant="outlined" disableGutters>
-      <AccordionSummary expandIcon={<span aria-hidden>▾</span>}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-          サンプル一覧
+    <>
+      <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+        <Button variant="outlined" onClick={() => setOpen(true)}>
+          サンプル一覧を開く
+        </Button>
+        <Typography variant="body2" color="text.secondary">
+          {SAMPLE_GROUPS.length}グループ・{sampleCount}件。選ぶと State（問い合わせ文）と Questions の両方が置き換わります
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ ml: 2, alignSelf: 'center' }}>
-          押すと State（問い合わせ文）と Questions の両方が置き換わります
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails>
-        <Stack spacing={1.5}>
+      </Stack>
+
+      <Drawer
+        anchor="right"
+        open={open}
+        onClose={() => setOpen(false)}
+        slotProps={{ paper: { sx: { width: 'min(720px, 92vw)' } } }}
+      >
+        <Stack
+          direction="row"
+          sx={{ alignItems: 'center', px: 2.5, py: 1.5, borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h6" component="h2">
+              サンプル一覧
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              選ぶと State（問い合わせ文）と Questions の両方が置き換わります。文章はすべて架空のものです
+            </Typography>
+          </Box>
+          <IconButton aria-label="閉じる" onClick={() => setOpen(false)}>
+            ✕
+          </IconButton>
+        </Stack>
+
+        <Stack spacing={1.5} sx={{ p: 2.5, overflowY: 'auto' }}>
           {SAMPLE_GROUPS.map((g) => (
             <Paper key={g.title} variant="outlined" sx={{ px: 2, py: 1.5 }}>
-              <Typography variant="subtitle2">{g.title}</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                {g.title}
+              </Typography>
               <Typography variant="caption" color="text.secondary" component="div">
                 {g.description}
               </Typography>
@@ -38,13 +70,24 @@ export function SampleList({ onPick }: Props) {
               </Typography>
               <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
                 {g.samples.map((s) => (
-                  <Chip key={s.text} label={s.text} title={s.note} onClick={() => onPick(s.text, g)} variant="outlined" />
+                  <Chip
+                    key={s.text}
+                    label={s.text}
+                    title={s.note}
+                    variant="outlined"
+                    onClick={() => {
+                      onPick(s.text, g)
+                      setOpen(false)
+                    }}
+                    // 長い文も折り返して全文を見せる
+                    sx={{ height: 'auto', py: 0.5, '& .MuiChip-label': { whiteSpace: 'normal' } }}
+                  />
                 ))}
               </Stack>
             </Paper>
           ))}
         </Stack>
-      </AccordionDetails>
-    </Accordion>
+      </Drawer>
+    </>
   )
 }
