@@ -18,6 +18,8 @@ import { JsonModal } from './JsonModal'
 type Props = {
   title: string
   result: ApiResult
+  /** タイトル下に小さく出す注意書き */
+  note?: string
 }
 
 const pct = (p: number) => `${(p * 100).toFixed(1)}%`
@@ -114,7 +116,7 @@ function AnswerView({ answer }: { answer: Answer }) {
   }
 }
 
-export function ResultPanel({ title, result }: Props) {
+export function ResultPanel({ title, result, note }: Props) {
   const [open, setOpen] = useState(false)
   const hasJson = result.state === 'ok' || result.state === 'error' || result.state === 'loading'
 
@@ -122,7 +124,8 @@ export function ResultPanel({ title, result }: Props) {
     <Card variant="outlined" sx={{ height: '100%' }}>
       <CardHeader
         title={title}
-        slotProps={{ title: { variant: 'h6' } }}
+        subheader={note}
+        slotProps={{ title: { variant: 'h6' }, subheader: { variant: 'caption' } }}
         action={
           hasJson && (
             <Button size="small" variant="outlined" onClick={() => setOpen(true)}>

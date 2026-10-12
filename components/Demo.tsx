@@ -103,7 +103,12 @@ export function Demo() {
 
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, md: 6 }}>
-                <ResultPanel title="Jev（TypeSafe）" result={results.jev} />
+                <ResultPanel
+                  title="Jev（TypeSafe）"
+                  result={results.jev}
+                  // https://docs.typesafe.ai/models#language-support
+                  note="※ Jev の主な学習言語は英語で、日本語は精度が英語と同等ではないとされています（公式ドキュメントより）"
+                />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
                 <ResultPanel title="Decisions API（OpenAI）" result={results.decisions} />
