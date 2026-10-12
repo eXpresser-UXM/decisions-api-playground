@@ -292,37 +292,55 @@ const OPENAI_GUIDE_QUESTIONS: Question[] = [
 // ---- G-Eval（DeepEval 形式：質問・AI回答・想定回答）----
 // G-Eval（Liu et al., 2023, https://arxiv.org/abs/2303.16634）は評価のやり方で、
 // DeepEval（https://deepeval.com/docs/metrics-llm-evals）はそれを「観点と入力（質問・AI回答・想定回答など）を選べる」形で実装している。
-// correctness の基準は DeepEval の Correctness の例を訳したもの。completeness と contradiction はこのアプリで足した観点で、段階の説明もこのアプリで作成した
+// 観点は論文の要約評価（SummEval）の4観点を、FAQ の回答評価向けに読み替えたもの
+// （元の定義は著者のリポジトリ https://github.com/nlpyang/geval のプロンプト、MIT License）。
+// 点数の幅も論文に合わせ（Fluency は1〜3、ほかは1〜5）、論文と同じく両端（Fluency は全段階）にだけ説明を付けた。
+// G-Eval の最終スコアは Σ 確率×点数。このアプリの Score は段階の番号が0から始まるため「表示値＋1」が G-Eval のスコアになる
 const GEVAL_INSTRUCTIONS_NOTE = 'State の【質問】【AI回答】【想定回答】を読んで評価する。'
+const fiveLevels = (lowest: string, highest: string) => [
+  { label: '1', description: `最低：${lowest}` },
+  { label: '2', description: '' },
+  { label: '3', description: '' },
+  { label: '4', description: '' },
+  { label: '5', description: `最高：${highest}` },
+]
 const GEVAL_QUESTIONS: Question[] = [
   {
     kind: 'score',
-    name: 'correctness',
-    instructions: `${GEVAL_INSTRUCTIONS_NOTE}想定回答に照らして、AI回答が事実として正しいかを判断する。言い回しの違いは問わない。`,
+    name: 'coherence',
+    instructions: `${GEVAL_INSTRUCTIONS_NOTE}Coherence（一貫性）：AI回答のすべての文が、まとまった全体としてどのくらい良いか。回答はよく構成・整理されているべきで、関連する情報の寄せ集めではなく、文から文へと積み上げて、質問への1つのまとまった答えになっているべきである。`,
+    levels: fiveLevels(
+      '関連する情報の寄せ集めで、まとまった答えになっていない',
+      'よく構成・整理され、筋道立てて1つの答えになっている',
+    ),
+  },
+  {
+    kind: 'score',
+    name: 'consistency',
+    instructions: `${GEVAL_INSTRUCTIONS_NOTE}Consistency（事実の整合性）：AI回答と想定回答の事実が一致しているか。事実に整合した回答は、想定回答から導ける内容だけを含む。想定回答にない事実や、想定回答と食い違う内容（ハルシネーション）を含む回答は減点する。言い回しの違いは問わない。`,
+    levels: fiveLevels(
+      '想定回答と食い違う、または想定回答にない事実を含む',
+      '想定回答から導ける内容だけでできている',
+    ),
+  },
+  {
+    kind: 'score',
+    name: 'fluency',
+    instructions: `${GEVAL_INSTRUCTIONS_NOTE}Fluency（流暢さ）：文法・表記・句読点・言葉の選び方・文の構造の点から見た、AI回答の文章の質。`,
     levels: [
-      { label: '誤り', description: '想定回答と食い違う、または事実として誤った内容が中心になっている' },
-      { label: '一部誤り', description: '正しい内容もあるが、重要な点に誤りがある' },
-      { label: 'おおむね正しい', description: '重要な点は正しいが、細かい誤りや不正確な表現がある' },
-      { label: '正しい', description: '想定回答と同じ事実を述べており、誤りがない' },
+      { label: '1', description: '悪い：誤りが多く、理解しにくい、または不自然に聞こえる' },
+      { label: '2', description: 'まあまあ：わかりやすさや滑らかさに影響する誤りがいくつかあるが、要点は理解できる' },
+      { label: '3', description: '良い：誤りがほとんどなく、読みやすく、わかりやすい' },
     ],
   },
   {
     kind: 'score',
-    name: 'completeness',
-    instructions: `${GEVAL_INSTRUCTIONS_NOTE}想定回答に含まれる要点を、AI回答がどれだけ含んでいるかを判断する。`,
-    levels: [
-      { label: 'ほぼ含まない', description: '想定回答の要点をほとんど含んでいない' },
-      { label: '一部', description: '要点の一部だけを含み、重要な点が抜けている' },
-      { label: 'ほぼすべて', description: '重要な要点は含んでいるが、細かい点が抜けている' },
-      { label: 'すべて', description: '想定回答の要点をすべて含んでいる' },
-    ],
-  },
-  {
-    kind: 'predicate',
-    name: 'contradiction',
-    instructions: `${GEVAL_INSTRUCTIONS_NOTE}AI回答に、想定回答と食い違う内容が含まれているか？`,
-    whenTrue: '想定回答と矛盾する条件・数字・手順などが書かれている',
-    whenFalse: '想定回答と矛盾する内容はない（足りない点があるだけなら いいえ）',
+    name: 'relevance',
+    instructions: `${GEVAL_INSTRUCTIONS_NOTE}Relevance（関連性）：AI回答が、質問に答えるために重要な情報を選べているか。回答は質問に必要な情報だけを含むべきで、質問と関係のない情報や重複を含む回答は減点する。`,
+    levels: fiveLevels(
+      '質問に答えていない、または関係のない情報や重複が多い',
+      '質問に必要な情報だけを過不足なく含む',
+    ),
   },
 ]
 
@@ -457,10 +475,10 @@ export const SAMPLE_GROUPS: SampleGroup[] = [
     ],
   },
   {
-    title: '【G-Eval】回答の正確さの評価（DeepEval 形式：質問・AI回答・想定回答）',
+    title: '【G-Eval】回答の品質評価（DeepEval 形式：質問・AI回答・想定回答）',
     description:
-      'LLM の回答を、想定回答（正解）と比べて評価する G-Eval の使い方。架空ネット書店の FAQ ボットの回答5種類を比べる。' +
-      'correctness は DeepEval の Correctness の基準を訳したもの、completeness と contradiction はこのアプリで足した観点',
+      'G-Eval の4観点（Coherence・Consistency・Fluency・Relevance）を、論文の要約評価から FAQ の回答評価向けに読み替えたもの。' +
+      '架空ネット書店の FAQ ボットの回答6種類を比べる。G-Eval のスコア（Σ 確率×点数）は、このアプリの Score の表示値＋1（段階の番号が0から始まるため）',
     source: { label: 'DeepEval: G-Eval', url: 'https://deepeval.com/docs/metrics-llm-evals' },
     questions: GEVAL_QUESTIONS,
     samples: [
@@ -469,7 +487,7 @@ export const SAMPLE_GROUPS: SampleGroup[] = [
         text: gevalState(
           '発送準備に入る前なら、マイページの注文履歴からキャンセルできます。発送準備に入った後はキャンセルできませんので、商品の到着後に返品手続きをお願いします。',
         ),
-        note: '期待：correctness・completeness が高い、contradiction が低い',
+        note: '期待：4観点とも高い',
       },
       {
         label: '言い回しは違うが正しい回答',
@@ -479,19 +497,24 @@ export const SAMPLE_GROUPS: SampleGroup[] = [
         note: '期待：正しい回答と同じくらい高い（文字ではなく意味で判定できているか）',
       },
       {
-        label: '要点が不足した回答',
-        text: gevalState('マイページの注文履歴からキャンセルできます。'),
-        note: '期待：completeness が低い（発送準備後の扱いが抜けている）、contradiction は低い',
-      },
-      {
-        label: '誤った回答',
+        label: '事実と違う回答',
         text: gevalState('注文から30日以内であれば、いつでもキャンセルできます。お電話でご連絡ください。'),
-        note: '期待：correctness が低い、contradiction が高い',
+        note: '期待：consistency が低い（想定回答と食い違う）',
       },
       {
         label: '質問に答えていない回答',
-        text: gevalState('当店では毎週新刊を入荷しています。ぜひご利用ください。'),
-        note: '期待：correctness・completeness が低い',
+        text: gevalState('当店では毎週新刊を入荷しています。ポイントは購入金額の1%が貯まります。ぜひご利用ください。'),
+        note: '期待：relevance が低い（質問と関係のない情報）',
+      },
+      {
+        label: '文法が崩れた回答',
+        text: gevalState('キャンセルの、発送準備 前ならマイページ 注文履歴から できる。後は 届いてから返品 手続きを を。'),
+        note: '期待：fluency が低い',
+      },
+      {
+        label: '寄せ集めの回答',
+        text: gevalState('マイページ。注文履歴。発送準備。返品手続き。キャンセル可能。到着後。'),
+        note: '期待：coherence が低い（関連する言葉の寄せ集め）',
       },
     ],
   },
