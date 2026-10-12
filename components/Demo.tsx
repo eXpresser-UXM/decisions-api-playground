@@ -110,9 +110,6 @@ export function Demo() {
           <Typography variant="h6" component="h1" sx={{ fontWeight: 700 }}>
             Jev x OpenAI Decisions API Playground
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ display: { xs: 'none', md: 'block' } }}>
-            題材：ポチッとモール（架空の本・雑誌ECサイト）
-          </Typography>
           <Box sx={{ flex: 1 }} />
           <Tabs value={screen} onChange={(_, v: Screen) => setScreen(v)}>
             <Tab value="judge" label="判定" />
