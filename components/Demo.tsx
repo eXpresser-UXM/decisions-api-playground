@@ -14,15 +14,24 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import { runAll, type ApiJob } from '@/lib/apiClient'
 import {
+  buildDecisionsInput,
   buildDecisionsRequest,
   DECISIONS_PRICING,
   parseDecisionsResponse,
   parseDecisionsUsage,
   type DecisionsResponse,
 } from '@/lib/decisions'
-import { buildJevRequest, JEV_PRICING, parseJevResponse, parseJevUsage, type JevResponse } from '@/lib/jev'
-import { SAMPLE_INQUIRIES, TEXT_QUESTIONS } from '@/lib/questions'
+import {
+  buildJevRequest,
+  JEV_IMAGE_UNSUPPORTED,
+  JEV_PRICING,
+  parseJevResponse,
+  parseJevUsage,
+  type JevResponse,
+} from '@/lib/jev'
+import { IMAGE_QUESTIONS, SAMPLE_INQUIRIES, TEXT_QUESTIONS } from '@/lib/questions'
 import type { ApiId, ApiResult, Keys } from '@/lib/types'
+import { ImageAttach, type AttachedImage } from './ImageAttach'
 import { ResultPanel } from './ResultPanel'
 import { Settings } from './Settings'
 
@@ -37,26 +46,35 @@ export function Demo() {
   const [text, setText] = useState('')
   const [results, setResults] = useState<Record<ApiId, ApiResult>>(IDLE)
   const [running, setRunning] = useState(false)
+  const [image, setImage] = useState<AttachedImage | null>(null)
+  // 結果欄の行数（直前に判定した問いの数）。画像を付け外ししても表示中の結果がずれないよう判定時に決める
+  const [questionCount, setQuestionCount] = useState(TEXT_QUESTIONS.length)
 
   const judge = async () => {
-    const questions = TEXT_QUESTIONS
+    // 画像があれば画像の問いも加える。Jev には画像を送れないため、テキストの問いだけを送る
+    const imageQuestions = image ? IMAGE_QUESTIONS : []
+    const allQuestions = [...TEXT_QUESTIONS, ...imageQuestions]
     const jev: ApiJob<JevResponse> = {
       id: 'jev',
       apiKey: keys.typesafe,
-      request: buildJevRequest(questions, text),
-      parse: (res) => parseJevResponse(questions, res),
+      request: buildJevRequest(TEXT_QUESTIONS, text),
+      parse: (res) => [
+        ...parseJevResponse(TEXT_QUESTIONS, res),
+        ...imageQuestions.map((q) => ({ kind: 'unsupported' as const, name: q.name, reason: JEV_IMAGE_UNSUPPORTED })),
+      ],
       model: (res) => res.model,
       usage: parseJevUsage,
     }
     const decisions: ApiJob<DecisionsResponse> = {
       id: 'decisions',
       apiKey: keys.openai,
-      request: buildDecisionsRequest(questions, text),
-      parse: (res) => parseDecisionsResponse(questions, res),
+      request: buildDecisionsRequest(allQuestions, buildDecisionsInput(text, image?.dataUrl)),
+      parse: (res) => parseDecisionsResponse(allQuestions, res),
       model: (res) => res.model,
       usage: parseDecisionsUsage,
     }
     setRunning(true)
+    setQuestionCount(allQuestions.length)
     setResults(IDLE)
     await runAll([jev, decisions], (id, result) => setResults((prev) => ({ ...prev, [id]: result })))
     setRunning(false)
@@ -103,6 +121,7 @@ export function Demo() {
                   <Chip key={s.text} label={s.text} title={s.note} onClick={() => setText(s.text)} variant="outlined" />
                 ))}
               </Stack>
+              <ImageAttach image={image} onChange={setImage} />
               <Box>
                 <Button variant="contained" size="large" onClick={judge} disabled={running || !text.trim()}>
                   判定する
@@ -122,7 +141,7 @@ export function Demo() {
               <ResultPanel
                 title="Jev（TypeSafe）"
                 result={results.jev}
-                questionCount={TEXT_QUESTIONS.length}
+                questionCount={questionCount}
                 pricing={JEV_PRICING}
                 note={
                   <>
@@ -137,7 +156,7 @@ export function Demo() {
               <ResultPanel
                 title="Decisions API（OpenAI）"
                 result={results.decisions}
-                questionCount={TEXT_QUESTIONS.length}
+                questionCount={questionCount}
                 pricing={DECISIONS_PRICING}
               />
             </Box>

@@ -33,6 +33,8 @@ export type Answer =
   | { kind: 'score'; name: string; score: number; probabilities: Probability[]; confidence: number }
   | { kind: 'predicate'; name: string; probability: number }
   | { kind: 'refusal'; name: string }
+  /** その API では判定できない問い（例：Jev に画像の問い） */
+  | { kind: 'unsupported'; name: string; reason: string }
 
 /** レスポンスの usage にあるトークン数（含まれない項目は undefined） */
 export type TokenUsage = { input?: number; output?: number }

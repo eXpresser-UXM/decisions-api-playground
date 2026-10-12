@@ -38,6 +38,26 @@ export const NEEDS_VERIFICATION: Question = {
 
 export const TEXT_QUESTIONS: Question[] = [ROUTE, ATTITUDE, NEEDS_VERIFICATION]
 
+// フェーズ3：画像の問い（Decisions API のみ。Jev は画像入力に非対応）
+export const VISIBLE_DAMAGE: Question = {
+  kind: 'predicate',
+  name: 'visible_damage',
+  instructions: '商品に目に見える破損（割れ、破れ、へこみ）があるか？ 影や梱包の傷は無視する。',
+}
+
+export const DAMAGE_LEVEL: Question = {
+  kind: 'score',
+  name: 'damage_level',
+  instructions: '商品の破損の程度はどのくらいか？ 影や梱包の傷は無視する。',
+  levels: [
+    { label: 'なし', description: '商品に目に見える破損はない' },
+    { label: '軽微', description: '小さな傷・折れ・へこみがあるが、読む・使うのに支障はない' },
+    { label: '重大', description: '大きな破れ・割れ・変形があり、商品として使えない、または交換が必要な程度' },
+  ],
+}
+
+export const IMAGE_QUESTIONS: Question[] = [VISIBLE_DAMAGE, DAMAGE_LEVEL]
+
 // 動作確認用の入力（架空のポチッとモールの問い合わせ）
 export const SAMPLE_INQUIRIES: { text: string; note: string }[] = [
   { text: 'キャンセルの条件を教えてください', note: '期待：faq' },

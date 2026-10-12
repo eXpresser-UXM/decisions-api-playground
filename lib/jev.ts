@@ -77,6 +77,9 @@ export function buildJevRequest(questions: Question[], text: string): JevRequest
   }
 }
 
+/** Jev は画像入力に非対応（https://docs.typesafe.ai/models の Input 欄） */
+export const JEV_IMAGE_UNSUPPORTED = '画像非対応（Jev はテキストのみ入力できます）'
+
 export function parseJevResponse(questions: Question[], res: JevResponse): Answer[] {
   return questions.map((q): Answer => {
     const a = res.answers[q.name]

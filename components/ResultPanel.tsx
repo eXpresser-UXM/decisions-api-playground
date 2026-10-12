@@ -119,6 +119,15 @@ function AnswerView({ answer }: { answer: Answer }) {
           <Typography color="text.secondary">回答が返りませんでした（refusal）。</Typography>
         </Box>
       )
+    case 'unsupported':
+      return (
+        <Box>
+          <AnswerHead name={answer.name} kind="対象外" />
+          <Alert severity="info" variant="outlined">
+            {answer.reason}
+          </Alert>
+        </Box>
+      )
   }
 }
 

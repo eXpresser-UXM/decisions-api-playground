@@ -47,6 +47,23 @@ function toDecisionsQuestion(q: Question): DecisionsQuestion {
   }
 }
 
+/**
+ * input を組み立てる。画像がなければ文字列、あれば user メッセージに input_text と input_image を並べる。
+ * 画像は data URL（base64）で渡す（ホストされた画像URL・file_id は非対応）。
+ */
+export function buildDecisionsInput(text: string, imageDataUrl?: string): DecisionCreateParams['input'] {
+  if (!imageDataUrl) return text
+  return [
+    {
+      role: 'user',
+      content: [
+        { type: 'input_text', text },
+        { type: 'input_image', image_url: imageDataUrl },
+      ],
+    },
+  ]
+}
+
 export function buildDecisionsRequest(
   questions: Question[],
   input: DecisionCreateParams['input'],
