@@ -91,6 +91,7 @@ npm run dev
 | `npm run dev` | 開発サーバーを起動（http://localhost:3000） |
 | `npm run build` | 本番用にビルド（型チェックを含む） |
 | `npm run lint` | ESLint でチェック |
+| `npm run licenses` | サードパーティーライセンスの一覧を作る（`dev`・`build` の前にも自動で実行） |
 
 ## ソースコードの構成
 
@@ -127,6 +128,7 @@ TypeSafe API / OpenAI API
 | `lib/apiClient.ts` | ブラウザ → Route Handler の呼び出しと、両 API の並列実行 |
 | `lib/serverConfig.ts` | サーバー側で使うキーとエンドポイントの決め方 |
 | `docs/` | 使い方・Vercel での公開のドキュメントと、スクリーンショット |
+| `scripts/generate-third-party-licenses.mjs` | サードパーティーライセンスの一覧（`public/third-party-licenses.txt`）を作る |
 | `.env.sample` | 環境変数のひな形 |
 | `vercel.json` | Vercel で Next.js としてビルドするための設定 |
 
@@ -148,4 +150,8 @@ git diff --cached | grep -n -E "sk-[A-Za-z0-9_-]{10,}|Bearer [A-Za-z0-9._-]{10,}
 
 ## ライセンス
 
-[MIT License](./LICENSE)
+このアプリは [MIT License](./LICENSE) です。
+
+使っているオープンソースのライセンスは、画面右下の「Licenses」から確認できます。
+一覧は `npm run dev`／`npm run build` の前に `scripts/generate-third-party-licenses.mjs` が自動で作ります
+（`package-lock.json` の本番用の依存と、各パッケージの LICENSE・NOTICE などのファイルから作成。生成したファイルはコミットしません）。

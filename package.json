@@ -1,12 +1,16 @@
 {
   "name": "decisions-api-playground",
   "version": "0.1.0",
-  "private": true,
+  "description": "A playground for testing the Typesafe API and Decisions API",
+  "author": "Studio UXM",
   "scripts": {
+    "predev": "node scripts/generate-third-party-licenses.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/generate-third-party-licenses.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "licenses": "node scripts/generate-third-party-licenses.mjs"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",

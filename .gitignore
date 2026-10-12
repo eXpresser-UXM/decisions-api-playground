@@ -51,3 +51,6 @@ Thumbs.db
 desktop.ini
 .vscode/
 .idea/
+
+# 自動生成するサードパーティーライセンスの一覧（npm run build / dev の前に作られる）
+/public/third-party-licenses.txt

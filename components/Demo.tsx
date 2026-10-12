@@ -269,7 +269,17 @@ export function Demo() {
         >
           Studio UXM
         </Link>{' '}
-        · Built with Claude — use the source at your own risk
+        · Built with Claude — use the source at your own risk ·{' '}
+        {/* このアプリと、使っているオープンソースのライセンス（ビルド時に scripts/generate-third-party-licenses.mjs で生成） */}
+        <Link
+          href="/third-party-licenses.txt"
+          target="_blank"
+          rel="noopener noreferrer"
+          color="inherit"
+          sx={{ pointerEvents: 'auto', fontWeight: 600 }}
+        >
+          Licenses
+        </Link>
       </Typography>
     </Box>
   )
