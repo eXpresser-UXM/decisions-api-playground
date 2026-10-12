@@ -128,7 +128,7 @@ export function Demo() {
       {/* 右下の固定表記と重ならないよう下側を広めに取る */}
       <Container maxWidth="xl" sx={{ pt: 4, pb: 6 }}>
         {screen === 'settings' ? (
-          <Settings keys={keys} envStatus={envStatus} onChange={setKeys} />
+          <Settings keys={keys} envStatus={envStatus} onChange={setKeys} onGoJudge={() => setScreen('judge')} />
         ) : (
           <Stack spacing={3}>
             <SampleList

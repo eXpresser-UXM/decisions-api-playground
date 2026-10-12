@@ -1,9 +1,12 @@
 'use client'
 import Alert from '@mui/material/Alert'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import type { EnvStatus } from '@/lib/apiClient'
 import type { Keys } from '@/lib/types'
 
@@ -12,6 +15,8 @@ type Props = {
   /** サーバーの設定（環境変数にキーがあるか・エンドポイント）。キーの値はブラウザに来ない */
   envStatus: EnvStatus
   onChange: (keys: Keys) => void
+  /** 「判定画面へ」を押したとき */
+  onGoJudge: () => void
 }
 
 /** キー入力欄の下に出す、どのキーを使うかの説明 */
@@ -22,7 +27,7 @@ function keySource(typed: string, inEnv: boolean) {
 
 // 画面で入力したキーは React の state（メモリ）にのみ保持する。localStorage・sessionStorage・Cookie には保存しない。
 // 環境変数のキーはサーバー側だけで使い、値はブラウザに送らない。
-export function Settings({ keys, envStatus, onChange }: Props) {
+export function Settings({ keys, envStatus, onChange, onGoJudge }: Props) {
   const apis = [
     {
       id: 'typesafe',
@@ -41,23 +46,23 @@ export function Settings({ keys, envStatus, onChange }: Props) {
   ] as const
 
   return (
-    <Stack spacing={3} sx={{ maxWidth: 720 }}>
-      <Typography variant="h5">設定</Typography>
+    <Stack spacing={3}>
       <Alert severity="warning">
         入力したAPIキーは、このアプリのサーバーを経由して各社の API に送られます。
         キーを保存したり悪用したりすることはありませんが、
         <strong>使い終わったら、そのAPIキーはすぐに削除（無効化）してください。</strong>
         デモ専用のキーを作り、利用額の上限を設定しておくことをおすすめします。
       </Alert>
-      <Alert severity="info">
-        画面で入力した値はこのページのメモリにのみ保持し、再読み込みで消えます。
-        サーバーの環境変数（ローカルなら .env）にキーがあれば、それが初期値になります（画面で入力した値が優先）。
-        環境変数のキーはサーバーの中だけで使い、ブラウザには送りません。
-        エンドポイントは環境変数でのみ設定でき、画面からは変更できません。
-      </Alert>
 
-      {apis.map((a) => {
-        return (
+      {/* Jev と Decisions API の設定を左右に並べる（狭い画面では縦に並ぶ） */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'repeat(2, minmax(0, 1fr))' },
+          gap: 3,
+        }}
+      >
+        {apis.map((a) => (
           <Paper key={a.id} variant="outlined" sx={{ p: 2.5 }}>
             <Stack spacing={2.5}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
@@ -82,8 +87,26 @@ export function Settings({ keys, envStatus, onChange }: Props) {
               />
             </Stack>
           </Paper>
-        )
-      })}
+        ))}
+      </Box>
+
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ alignItems: { md: 'flex-end' } }}>
+        <Alert severity="info" sx={{ flex: 1 }}>
+          画面で入力した値はこのページのメモリにのみ保持し、再読み込みで消えます。
+          サーバーの環境変数（ローカルなら .env）にキーがあれば、それが初期値になります（画面で入力した値が優先）。
+          環境変数のキーはサーバーの中だけで使い、ブラウザには送りません。
+          エンドポイントは環境変数でのみ設定でき、画面からは変更できません。
+        </Alert>
+        <Button
+          variant="contained"
+          size="large"
+          endIcon={<ArrowForwardIcon />}
+          onClick={onGoJudge}
+          sx={{ flexShrink: 0, alignSelf: { xs: 'flex-end', md: 'flex-end' } }}
+        >
+          判定画面へ
+        </Button>
+      </Stack>
     </Stack>
   )
 }
