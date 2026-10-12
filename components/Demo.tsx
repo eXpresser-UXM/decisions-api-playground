@@ -73,7 +73,8 @@ export function Demo() {
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      {/* 右下の固定表記と重ならないよう下側を広めに取る */}
+      <Container maxWidth="xl" sx={{ pt: 4, pb: 6 }}>
         {screen === 'settings' ? (
           <Settings keys={keys} onChange={setKeys} />
         ) : (
@@ -125,6 +126,24 @@ export function Demo() {
           </Stack>
         )}
       </Container>
+
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{
+          position: 'fixed',
+          right: 12,
+          bottom: 8,
+          px: 1,
+          py: 0.25,
+          borderRadius: 1,
+          bgcolor: 'background.paper',
+          opacity: 0.85,
+          pointerEvents: 'none',
+        }}
+      >
+        Made by eXpresser · Built with Claude — use the source at your own risk
+      </Typography>
     </Box>
   )
 }
