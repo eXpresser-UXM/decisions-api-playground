@@ -138,7 +138,7 @@ export function Demo() {
               }}
             />
 
-            {/* 左：State（判定する文章＋画像）、右：Questions（回答形式） */}
+            {/* 左：State（判定する文章＋画像）、右：Questions（問い） */}
             <Box
               sx={{
                 display: 'grid',

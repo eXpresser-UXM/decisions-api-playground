@@ -71,7 +71,7 @@ export function QuestionList({ questions, onChange }: Props) {
           </>
         }
       >
-        Questions（回答形式）
+        Questions（問い）
         <Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 1 }}>
           {questions.length}問
         </Typography>
