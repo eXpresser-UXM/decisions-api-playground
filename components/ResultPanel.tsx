@@ -201,7 +201,7 @@ export function ResultPanel({ title, result, note, questions, pricing }: Props) 
   const hasJson = result.state === 'ok' || result.state === 'error' || result.state === 'loading'
   const rows = panelRows(questions.length)
   // 区切り線は各行の上に引く（CardContent ではなく行ごとに置くため）
-  const rowSx = { px: 2, py: 2, borderTop: 1, borderColor: 'divider' }
+  const rowSx = { px: 2, py: 2, borderTop: 1, borderColor: 'divider', minWidth: 0 }
 
   return (
     // 親（ResultGrid）の行を subgrid で共有し、左右のカードで各行の高さをそろえる

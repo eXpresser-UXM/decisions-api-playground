@@ -138,7 +138,8 @@ export function Demo() {
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                // minmax(0, 1fr)：1行で省略する長い文に列幅を押し広げられないようにする
+                gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'repeat(2, minmax(0, 1fr))' },
                 gap: 3,
                 alignItems: 'stretch',
               }}
@@ -187,7 +188,8 @@ export function Demo() {
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                // minmax(0, 1fr)：1行で省略する長い文に列幅を押し広げられないようにする
+                gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'repeat(2, minmax(0, 1fr))' },
                 columnGap: 3,
                 rowGap: { xs: 3, md: 0 },
               }}
