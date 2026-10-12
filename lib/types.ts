@@ -37,6 +37,9 @@ export type Answer =
 /** レスポンスの usage にあるトークン数（含まれない項目は undefined） */
 export type TokenUsage = { input?: number; output?: number }
 
+/** 推定課金額の計算用（レスポンスには課金額が含まれないため、公式の単価から推定する） */
+export type Pricing = { usdPerMillionInputTokens: number; docUrl: string }
+
 export type ApiErrorInfo = {
   /** HTTP ステータスコード（通信エラー等で無い場合は undefined） */
   status?: number

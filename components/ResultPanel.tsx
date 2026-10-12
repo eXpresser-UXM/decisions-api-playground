@@ -8,9 +8,10 @@ import CardHeader from '@mui/material/CardHeader'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
 import LinearProgress from '@mui/material/LinearProgress'
+import Link from '@mui/material/Link'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import type { Answer, ApiResult, Probability } from '@/lib/types'
+import type { Answer, ApiResult, Pricing, Probability } from '@/lib/types'
 import { JsonModal } from './JsonModal'
 
 type Props = {
@@ -20,6 +21,8 @@ type Props = {
   note?: ReactNode
   /** 判定する問いの数（行をそろえるために使う） */
   questionCount: number
+  /** 推定課金額の単価と、その根拠の公式ドキュメント */
+  pricing: Pricing
 }
 
 const pct = (p: number) => `${(p * 100).toFixed(1)}%`
@@ -123,6 +126,10 @@ function AnswerView({ answer }: { answer: Answer }) {
 export const panelRows = (questionCount: number) => 2 + questionCount
 
 const fmtTokens = (n: number | undefined) => (n === undefined ? '—' : n.toLocaleString())
+// 1回あたりは非常に小さい額になるため、有効数字3桁で表示する
+// 単価は公式ドキュメントの表記（$0.042、$0.10）に合わせて最低2桁で表示する
+const fmtUnitPrice = (usd: number) => usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 })
+const fmtUsd = (usd: number) => `$${usd === 0 ? '0' : usd.toPrecision(3)}`
 
 function Stat({ label, children, sub }: { label: string; children: ReactNode; sub?: ReactNode }) {
   return (
@@ -140,7 +147,7 @@ function Stat({ label, children, sub }: { label: string; children: ReactNode; su
   )
 }
 
-export function ResultPanel({ title, result, note, questionCount }: Props) {
+export function ResultPanel({ title, result, note, questionCount, pricing }: Props) {
   const [open, setOpen] = useState(false)
   const hasJson = result.state === 'ok' || result.state === 'error' || result.state === 'loading'
   const rows = panelRows(questionCount)
@@ -175,13 +182,31 @@ export function ResultPanel({ title, result, note, questionCount }: Props) {
                 {msText(result.ms)}
               </Typography>
             </Stat>
-            <Stat label="トークン（レスポンスの usage）" sub={`出力 ${fmtTokens(result.usage.output)}`}>
+            <Stat label="トークン（レスポンスの usage）" sub={`出力 ${fmtTokens(result.usage.output)} Token`}>
               <Typography variant="h5" sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
-                入力 {fmtTokens(result.usage.input)}
+                入力 {fmtTokens(result.usage.input)} Token
               </Typography>
             </Stat>
             <Stat label="モデル（レスポンスの値）">
               <Typography sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{result.model}</Typography>
+            </Stat>
+            <Stat
+              label="推定課金額"
+              sub={
+                <>
+                  ${fmtUnitPrice(pricing.usdPerMillionInputTokens)} / MTokenで推定。正確な金額は
+                  <Link href={pricing.docUrl} target="_blank" rel="noopener noreferrer">
+                    公式ドキュメント
+                  </Link>
+                  を確認してください
+                </>
+              }
+            >
+              <Typography variant="h5" sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                {result.usage.input === undefined
+                  ? '—'
+                  : fmtUsd((result.usage.input * pricing.usdPerMillionInputTokens) / 1_000_000)}
+              </Typography>
             </Stat>
           </Stack>
           {result.answers.map((a) => (

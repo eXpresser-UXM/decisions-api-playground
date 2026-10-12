@@ -15,11 +15,12 @@ import Typography from '@mui/material/Typography'
 import { runAll, type ApiJob } from '@/lib/apiClient'
 import {
   buildDecisionsRequest,
+  DECISIONS_PRICING,
   parseDecisionsResponse,
   parseDecisionsUsage,
   type DecisionsResponse,
 } from '@/lib/decisions'
-import { buildJevRequest, parseJevResponse, parseJevUsage, type JevResponse } from '@/lib/jev'
+import { buildJevRequest, JEV_PRICING, parseJevResponse, parseJevUsage, type JevResponse } from '@/lib/jev'
 import { SAMPLE_INQUIRIES, TEXT_QUESTIONS } from '@/lib/questions'
 import type { ApiId, ApiResult, Keys } from '@/lib/types'
 import { ResultPanel } from './ResultPanel'
@@ -122,6 +123,7 @@ export function Demo() {
                 title="Jev（TypeSafe）"
                 result={results.jev}
                 questionCount={TEXT_QUESTIONS.length}
+                pricing={JEV_PRICING}
                 note={
                   <>
                     ※ Jev の主な学習言語は英語で、日本語は精度が英語と同等ではないとされています（
@@ -132,7 +134,12 @@ export function Demo() {
                   </>
                 }
               />
-              <ResultPanel title="Decisions API（OpenAI）" result={results.decisions} questionCount={TEXT_QUESTIONS.length} />
+              <ResultPanel
+                title="Decisions API（OpenAI）"
+                result={results.decisions}
+                questionCount={TEXT_QUESTIONS.length}
+                pricing={DECISIONS_PRICING}
+              />
             </Box>
           </Stack>
         )}

@@ -1,9 +1,15 @@
 // Jev（TypeSafe System One API）用の変換（共通形式 ⇔ Jev の形式）
 // 参照: https://docs.typesafe.ai/api
-import type { Answer, Question, TokenUsage } from './types'
+import type { Answer, Pricing, Question, TokenUsage } from './types'
 
 /** jev-latest ではなく固定バージョンを使う（https://docs.typesafe.ai/models） */
 export const JEV_MODEL = 'jev-1.13.0'
+
+/** 推定課金額の計算に使う単価（入力トークンのみ課金。2026-10-10 時点） */
+export const JEV_PRICING: Pricing = {
+  usdPerMillionInputTokens: 0.042,
+  docUrl: 'https://docs.typesafe.ai/models#current-models',
+}
 
 type JevQuestion =
   | { type: 'choice'; instructions: string; criteria: Record<string, string> }

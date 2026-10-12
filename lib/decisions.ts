@@ -1,9 +1,15 @@
 // OpenAI Decisions API 用の変換（共通形式 ⇔ Decisions API の形式）
 // 参照: https://developers.openai.com/api/docs/guides/decisions
 import type { Decision, DecisionCreateParams } from 'openai/resources/decisions'
-import type { Answer, Question, TokenUsage } from './types'
+import type { Answer, Pricing, Question, TokenUsage } from './types'
 
 export const DECISIONS_MODEL = 'gpt-6-luna'
+
+/** 推定課金額の計算に使う単価（入力トークンのみ課金。地域処理・長文の割増は含まない。2026-10-10 時点） */
+export const DECISIONS_PRICING: Pricing = {
+  usdPerMillionInputTokens: 0.1,
+  docUrl: 'https://developers.openai.com/api/docs/guides/decisions#pricing-and-availability',
+}
 
 export type DecisionsRequest = DecisionCreateParams
 export type DecisionsResponse = Decision
