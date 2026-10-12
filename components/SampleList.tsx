@@ -9,6 +9,8 @@ import Link from '@mui/material/Link'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import MenuBookIcon from '@mui/icons-material/MenuBook'
+import CloseIcon from '@mui/icons-material/Close'
 import { SAMPLE_GROUPS, type SampleGroup } from '@/lib/samples'
 
 type Props = {
@@ -26,7 +28,7 @@ export function SampleList({ onPick }: Props) {
   return (
     <>
       <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-        <Button variant="outlined" onClick={() => setOpen(true)}>
+        <Button variant="outlined" startIcon={<MenuBookIcon />} onClick={() => setOpen(true)}>
           サンプル一覧を開く
         </Button>
         <Typography variant="body2" color="text.secondary">
@@ -53,7 +55,7 @@ export function SampleList({ onPick }: Props) {
             </Typography>
           </Box>
           <IconButton aria-label="閉じる" onClick={() => setOpen(false)}>
-            ✕
+            <CloseIcon />
           </IconButton>
         </Stack>
 

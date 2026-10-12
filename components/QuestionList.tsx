@@ -7,8 +7,11 @@ import IconButton from '@mui/material/IconButton'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import AddIcon from '@mui/icons-material/Add'
+import DataObjectIcon from '@mui/icons-material/DataObject'
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import type { Question } from '@/lib/types'
-import { KIND_LABEL, QuestionEditor } from './QuestionEditor'
+import { KIND_ICON, KIND_LABEL, QuestionEditor } from './QuestionEditor'
 import { QuestionsJsonDialog } from './QuestionsJsonDialog'
 import { SectionTitle } from './SectionTitle'
 
@@ -59,10 +62,10 @@ export function QuestionList({ questions, onChange }: Props) {
       <SectionTitle
         action={
           <>
-            <Button size="small" variant="contained" onClick={() => open({ index: null })}>
-              ＋ 追加
+            <Button size="small" variant="contained" startIcon={<AddIcon />} onClick={() => open({ index: null })}>
+              追加
             </Button>
-            <Button size="small" variant="outlined" onClick={() => setJsonOpen(true)} sx={{ ml: 1 }}>
+            <Button size="small" variant="outlined" startIcon={<DataObjectIcon />} onClick={() => setJsonOpen(true)} sx={{ ml: 1 }}>
               JSON
             </Button>
           </>
@@ -77,7 +80,7 @@ export function QuestionList({ questions, onChange }: Props) {
       <Box sx={{ flex: 1, overflowY: 'auto', maxHeight: 480 }}>
         {questions.length === 0 && (
           <Typography color="text.secondary" variant="body2" sx={{ p: 2 }}>
-            問いがありません。「＋ 追加」から追加してください。
+            問いがありません。「追加」から追加してください。
           </Typography>
         )}
         {questions.map((q, i) => (
@@ -100,7 +103,7 @@ export function QuestionList({ questions, onChange }: Props) {
                 <Typography component="code" sx={{ fontFamily: 'monospace', fontWeight: 600, fontSize: 14 }}>
                   {q.name}
                 </Typography>
-                <Chip size="small" variant="outlined" label={KIND_LABEL[q.kind]} />
+                <Chip size="small" variant="outlined" icon={KIND_ICON[q.kind]} label={KIND_LABEL[q.kind]} />
                 {q.image && <Chip size="small" color="info" variant="outlined" label="画像" />}
               </Stack>
               <Typography variant="caption" color="text.secondary" noWrap component="div">
@@ -112,13 +115,14 @@ export function QuestionList({ questions, onChange }: Props) {
             </Box>
             <IconButton
               size="small"
+              color="error"
               aria-label={`${q.name} を削除`}
               onClick={(e) => {
                 e.stopPropagation()
                 onChange(questions.filter((_, j) => j !== i))
               }}
             >
-              ✕
+              <DeleteForeverIcon fontSize="small" />
             </IconButton>
           </Stack>
         ))}

@@ -14,10 +14,25 @@ import TextField from '@mui/material/TextField'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Typography from '@mui/material/Typography'
+import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked'
+import LinearScaleIcon from '@mui/icons-material/LinearScale'
+import ThumbsUpDownIcon from '@mui/icons-material/ThumbsUpDown'
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+import AddIcon from '@mui/icons-material/Add'
+import SwapVertIcon from '@mui/icons-material/SwapVert'
+import CloseIcon from '@mui/icons-material/Close'
+import SaveIcon from '@mui/icons-material/Save'
 import { validateQuestion } from '@/lib/questionValidation'
 import type { Question } from '@/lib/types'
 
 type Kind = Question['kind']
+
+/** 種類ごとのアイコン（Choice：1つを選ぶ、Score：段階、Noul：はい／いいえ） */
+export const KIND_ICON: Record<Kind, React.ReactElement> = {
+  choice: <RadioButtonCheckedIcon fontSize="small" />,
+  score: <LinearScaleIcon fontSize="small" />,
+  predicate: <ThumbsUpDownIcon fontSize="small" />,
+}
 
 export const KIND_LABEL: Record<Kind, string> = {
   choice: 'Choice',
@@ -99,8 +114,8 @@ export function QuestionEditor({ question, otherNames, onSave, onClose }: Props)
 
   const rowsLabel =
     draft.kind === 'choice'
-      ? { title: '選択肢', key: '値（例：faq）', add: '＋ 選択肢を追加' }
-      : { title: '段階（低い → 高いの順）', key: '段階の名前（例：穏やか）', add: '＋ 段階を追加' }
+      ? { title: '選択肢', key: '値（例：faq）', add: '選択肢を追加' }
+      : { title: '段階（低い → 高いの順）', key: '段階の名前（例：穏やか）', add: '段階を追加' }
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="md">
@@ -114,7 +129,8 @@ export function QuestionEditor({ question, otherNames, onSave, onClose }: Props)
             onChange={(_, v: Kind | null) => v && set({ kind: v })}
           >
             {(Object.keys(KIND_LABEL) as Kind[]).map((k) => (
-              <ToggleButton key={k} value={k} sx={{ textTransform: 'none', px: 2 }}>
+              <ToggleButton key={k} value={k} sx={{ textTransform: 'none', px: 2, gap: 1 }}>
+                {KIND_ICON[k]}
                 {KIND_LABEL[k]}
               </ToggleButton>
             ))}
@@ -175,20 +191,25 @@ export function QuestionEditor({ question, otherNames, onSave, onClose }: Props)
                     sx={{ flex: 1 }}
                   />
                   <IconButton
+                    color="error"
                     aria-label="この行を削除"
                     onClick={() => set({ rows: draft.rows.filter((_, j) => j !== i) })}
                     disabled={draft.rows.length <= 2}
                   >
-                    ✕
+                    <DeleteForeverIcon fontSize="small" />
                   </IconButton>
                 </Stack>
               ))}
               <Stack direction="row" spacing={1}>
-                <Button size="small" onClick={() => set({ rows: [...draft.rows, { key: '', description: '' }] })}>
+                <Button
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={() => set({ rows: [...draft.rows, { key: '', description: '' }] })}
+                >
                   {rowsLabel.add}
                 </Button>
                 {draft.kind === 'score' && draft.rows.length > 1 && (
-                  <Button size="small" onClick={() => set({ rows: [...draft.rows].reverse() })}>
+                  <Button size="small" startIcon={<SwapVertIcon />} onClick={() => set({ rows: [...draft.rows].reverse() })}>
                     順番を逆にする
                   </Button>
                 )}
@@ -211,8 +232,15 @@ export function QuestionEditor({ question, otherNames, onSave, onClose }: Props)
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>キャンセル</Button>
-        <Button variant="contained" onClick={save} disabled={touched && errors.length > 0}>
+        <Button startIcon={<CloseIcon />} onClick={onClose}>
+          キャンセル
+        </Button>
+        <Button
+          variant="contained"
+          startIcon={question ? <SaveIcon /> : <AddIcon />}
+          onClick={save}
+          disabled={touched && errors.length > 0}
+        >
           {question ? '保存' : '追加'}
         </Button>
       </DialogActions>

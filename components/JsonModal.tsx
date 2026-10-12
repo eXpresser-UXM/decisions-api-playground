@@ -11,6 +11,11 @@ import Stack from '@mui/material/Stack'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
+import CloseIcon from '@mui/icons-material/Close'
+import UploadIcon from '@mui/icons-material/Upload'
+import DownloadIcon from '@mui/icons-material/Download'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import CheckIcon from '@mui/icons-material/Check'
 
 // モーダルを開いたときに初めて Monaco を読み込む
 const JsonEditor = dynamic(() => import('./JsonEditor'), {
@@ -70,16 +75,22 @@ export function JsonModal({ open, title, request, response, onClose }: Props) {
       <DialogTitle sx={{ pr: 6 }}>
         {title}
         <IconButton aria-label="閉じる" onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
-          ✕
+          <CloseIcon />
         </IconButton>
       </DialogTitle>
       <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 1, p: 0 }}>
         <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', px: 2 }}>
           <Tabs value={tab} onChange={(_, v: TabId) => setTab(v)}>
-            <Tab value="request" label="リクエスト" />
-            <Tab value="response" label="レスポンス" />
+            <Tab value="request" label="リクエスト" icon={<UploadIcon />} iconPosition="start" sx={{ minHeight: 48 }} />
+            <Tab value="response" label="レスポンス" icon={<DownloadIcon />} iconPosition="start" sx={{ minHeight: 48 }} />
           </Tabs>
-          <Button variant="outlined" size="small" onClick={copy} disabled={value === undefined}>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={copied === tab ? <CheckIcon /> : <ContentCopyIcon />}
+            onClick={copy}
+            disabled={value === undefined}
+          >
             {copied === tab ? 'コピーしました' : 'コピー'}
           </Button>
         </Stack>

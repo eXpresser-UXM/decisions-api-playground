@@ -9,6 +9,9 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Typography from '@mui/material/Typography'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import CheckIcon from '@mui/icons-material/Check'
+import CloseIcon from '@mui/icons-material/Close'
 import { parseQuestionsJson } from '@/lib/questionValidation'
 import type { Question } from '@/lib/types'
 
@@ -77,11 +80,13 @@ export function QuestionsJsonDialog({ questions, onApply, onClose }: Props) {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={copy} sx={{ mr: 'auto' }}>
+        <Button onClick={copy} startIcon={copied ? <CheckIcon /> : <ContentCopyIcon />} sx={{ mr: 'auto' }}>
           {copied ? 'コピーしました' : 'コピー'}
         </Button>
-        <Button onClick={onClose}>キャンセル</Button>
-        <Button variant="contained" onClick={apply} disabled={errors.length > 0}>
+        <Button startIcon={<CloseIcon />} onClick={onClose}>
+          キャンセル
+        </Button>
+        <Button variant="contained" startIcon={<CheckIcon />} onClick={apply} disabled={errors.length > 0}>
           適用
         </Button>
       </DialogActions>

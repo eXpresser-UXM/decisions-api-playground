@@ -4,6 +4,8 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate'
+import CloseIcon from '@mui/icons-material/Close'
 
 export type AttachedImage = { name: string; dataUrl: string; bytes: number }
 
@@ -71,7 +73,7 @@ export function ImageAttach({ image, onChange }: Props) {
 
   return (
     <Stack direction="row" spacing={2} sx={{ alignItems: 'center', flexWrap: 'wrap' }} useFlexGap>
-      <Button component="label" variant="outlined">
+      <Button component="label" variant="outlined" startIcon={<AddPhotoAlternateIcon />}>
         商品写真を添付
         <input
           hidden
@@ -98,7 +100,7 @@ export function ImageAttach({ image, onChange }: Props) {
               {fmtBytes(image.bytes)}・{sizeLevel(image.bytes).message}
             </Typography>
           </Box>
-          <Button size="small" onClick={() => onChange(null)}>
+          <Button size="small" startIcon={<CloseIcon />} onClick={() => onChange(null)}>
             外す
           </Button>
         </Stack>

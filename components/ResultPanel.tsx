@@ -11,6 +11,7 @@ import LinearProgress from '@mui/material/LinearProgress'
 import Link from '@mui/material/Link'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import DataObjectIcon from '@mui/icons-material/DataObject'
 import type { Answer, ApiResult, Pricing, Probability, Question } from '@/lib/types'
 import { JsonModal } from './JsonModal'
 
@@ -216,7 +217,7 @@ export function ResultPanel({ title, result, note, questions, pricing }: Props) 
         sx={{ alignItems: 'flex-start' }}
         action={
           hasJson && (
-            <Button size="small" variant="outlined" onClick={() => setOpen(true)}>
+            <Button size="small" variant="outlined" startIcon={<DataObjectIcon />} onClick={() => setOpen(true)}>
               JSONを表示
             </Button>
           )

@@ -13,6 +13,9 @@ import Tabs from '@mui/material/Tabs'
 import TextField from '@mui/material/TextField'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
+import FactCheckIcon from '@mui/icons-material/FactCheck'
+import SettingsIcon from '@mui/icons-material/Settings'
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import { EMPTY_ENV_STATUS, fetchEnvStatus, runAll, type ApiJob, type EnvStatus } from '@/lib/apiClient'
 import {
   buildDecisionsInput,
@@ -112,8 +115,8 @@ export function Demo() {
           </Typography>
           <Box sx={{ flex: 1 }} />
           <Tabs value={screen} onChange={(_, v: Screen) => setScreen(v)}>
-            <Tab value="judge" label="判定" />
-            <Tab value="settings" label="設定" />
+            <Tab value="judge" label="判定" icon={<FactCheckIcon />} iconPosition="start" />
+            <Tab value="settings" label="設定" icon={<SettingsIcon />} iconPosition="start" />
           </Tabs>
         </Toolbar>
       </AppBar>
@@ -173,6 +176,7 @@ export function Demo() {
                 size="large"
                 onClick={judge}
                 disabled={running || !text.trim() || askedQuestions.length === 0}
+                startIcon={<PlayArrowIcon />}
                 sx={{ px: 5 }}
               >
                 判定する
