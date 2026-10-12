@@ -15,6 +15,8 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import FactCheckIcon from '@mui/icons-material/FactCheck'
 import SettingsIcon from '@mui/icons-material/Settings'
+import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import { EMPTY_ENV_STATUS, fetchEnvStatus, runAll, type ApiJob, type EnvStatus } from '@/lib/apiClient'
 import {
@@ -41,6 +43,9 @@ import { ResultPanel } from './ResultPanel'
 import { SampleList } from './SampleList'
 import { SectionTitle } from './SectionTitle'
 import { Settings } from './Settings'
+
+/** プレイグラウンドの使い方（GitHub 上の docs/usage.md） */
+const USAGE_URL = 'https://github.com/eXpresser-UXM/decisions-api-playground/blob/main/docs/usage.md'
 
 type Screen = 'judge' | 'settings'
 
@@ -118,6 +123,17 @@ export function Demo() {
             Jev x OpenAI Decisions API Playground
           </Typography>
           <Box sx={{ flex: 1 }} />
+          {/* 使い方のページ（GitHub 上の docs/usage.md）を新しいタブで開く */}
+          <Button
+            variant="outlined"
+            href={USAGE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            startIcon={<HelpOutlineOutlinedIcon />}
+            endIcon={<OpenInNewIcon fontSize="small" />}
+          >
+            使い方
+          </Button>
           <Tabs value={screen} onChange={(_, v: Screen) => setScreen(v)}>
             <Tab value="judge" label="判定" icon={<FactCheckIcon />} iconPosition="start" />
             <Tab value="settings" label="設定" icon={<SettingsIcon />} iconPosition="start" />
