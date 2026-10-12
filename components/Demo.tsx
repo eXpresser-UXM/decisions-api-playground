@@ -255,10 +255,21 @@ export function Demo() {
           borderRadius: 1,
           bgcolor: 'background.paper',
           opacity: 0.85,
+          // 表記の上で下の画面を邪魔しないよう、クリックはリンクの部分だけ受け付ける
           pointerEvents: 'none',
         }}
       >
-        Made by eXpresser · Built with Claude — use the source at your own risk
+        Made by{' '}
+        <Link
+          href="https://uxm.jp"
+          target="_blank"
+          rel="noopener noreferrer"
+          color="inherit"
+          sx={{ pointerEvents: 'auto', fontWeight: 600 }}
+        >
+          Studio UXM
+        </Link>{' '}
+        · Built with Claude — use the source at your own risk
       </Typography>
     </Box>
   )
