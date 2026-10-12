@@ -351,6 +351,63 @@ const GEVAL_EXPECTED =
 const gevalState = (answer: string) =>
   `【質問】\n${GEVAL_QUESTION}\n\n【AI回答】\n${answer}\n\n【想定回答】\n${GEVAL_EXPECTED}`
 
+// ---- G-Eval の英語版（日本語版と同じ内容をすべて英語にしたもの。言語による結果の違いを比べる用）----
+// 観点の文面は、論文のプロンプト（https://github.com/nlpyang/geval）の原文に近い言い回しで、回答評価向けに読み替えた
+const GEVAL_EN_NOTE = 'Read the [Question], [AI answer], and [Expected answer] in the State and evaluate.'
+const fiveLevelsEn = (lowest: string, highest: string) => [
+  { label: '1', description: `Lowest: ${lowest}` },
+  { label: '2', description: '' },
+  { label: '3', description: '' },
+  { label: '4', description: '' },
+  { label: '5', description: `Highest: ${highest}` },
+]
+const GEVAL_EN_QUESTIONS: Question[] = [
+  {
+    kind: 'score',
+    name: 'coherence',
+    instructions: `${GEVAL_EN_NOTE} Coherence: the collective quality of all sentences in the AI answer. The answer should be well-structured and well-organized. It should not just be a heap of related information, but should build from sentence to sentence into a coherent answer to the question.`,
+    levels: fiveLevelsEn(
+      'a heap of related information that does not form a coherent answer',
+      'well-structured and well-organized, building into one coherent answer',
+    ),
+  },
+  {
+    kind: 'score',
+    name: 'consistency',
+    instructions: `${GEVAL_EN_NOTE} Consistency: the factual alignment between the AI answer and the expected answer. A factually consistent answer contains only statements that are entailed by the expected answer. Penalize answers that contain facts not in, or contradicting, the expected answer (hallucinations). Differences in wording do not matter.`,
+    levels: fiveLevelsEn(
+      'contradicts the expected answer or contains facts not in it',
+      'contains only statements entailed by the expected answer',
+    ),
+  },
+  {
+    kind: 'score',
+    name: 'fluency',
+    instructions: `${GEVAL_EN_NOTE} Fluency: the quality of the AI answer in terms of grammar, spelling, punctuation, word choice, and sentence structure.`,
+    levels: [
+      { label: '1', description: 'Poor: many errors that make it hard to understand or sound unnatural' },
+      { label: '2', description: 'Fair: some errors that affect clarity or smoothness, but the main points are still comprehensible' },
+      { label: '3', description: 'Good: few or no errors; easy to read and follow' },
+    ],
+  },
+  {
+    kind: 'score',
+    name: 'relevance',
+    instructions: `${GEVAL_EN_NOTE} Relevance: selection of the information that is important for answering the question. The answer should include only information needed to answer the question. Penalize answers that contain information unrelated to the question, redundancies, or excess information.`,
+    levels: fiveLevelsEn(
+      'does not answer the question, or contains much unrelated or redundant information',
+      'contains exactly the information needed to answer the question',
+    ),
+  },
+]
+
+// 日本語版と同じ架空の FAQ の英訳
+const GEVAL_EN_QUESTION = 'Until when can I cancel a book I ordered?'
+const GEVAL_EN_EXPECTED =
+  'You can cancel from the order history on My Page as long as the order has not entered shipping preparation. Once shipping preparation has started, the order cannot be cancelled, so please request a return after the item arrives.'
+const gevalStateEn = (answer: string) =>
+  `[Question]\n${GEVAL_EN_QUESTION}\n\n[AI answer]\n${answer}\n\n[Expected answer]\n${GEVAL_EN_EXPECTED}`
+
 export const SAMPLE_GROUPS: SampleGroup[] = [
   {
     title: '架空ネット書店の問い合わせ分類',
@@ -515,6 +572,50 @@ export const SAMPLE_GROUPS: SampleGroup[] = [
         label: '寄せ集めの回答',
         text: gevalState('マイページ。注文履歴。発送準備。返品手続き。キャンセル可能。到着後。'),
         note: '期待：coherence が低い（関連する言葉の寄せ集め）',
+      },
+    ],
+  },
+  {
+    title: '【G-Eval】回答の品質評価・英語版（DeepEval 形式）',
+    description:
+      '上の G-Eval（日本語）と同じ問い・回答をすべて英語にしたもの。Jev の主な学習言語は英語なので、日本語版と結果の違いを比べられる。' +
+      'G-Eval のスコアは、このアプリの Score の表示値＋1',
+    source: { label: 'DeepEval: G-Eval', url: 'https://deepeval.com/docs/metrics-llm-evals' },
+    questions: GEVAL_EN_QUESTIONS,
+    samples: [
+      {
+        label: 'Correct answer',
+        text: gevalStateEn(
+          'As long as the order has not entered shipping preparation, you can cancel it from the order history on My Page. After shipping preparation has started, cancellation is not possible, so please request a return once the item arrives.',
+        ),
+        note: 'expected: all four high',
+      },
+      {
+        label: 'Correct answer, different wording',
+        text: gevalStateEn(
+          "If we haven't started preparing your package yet, you can cancel it on the order history screen. Once preparation begins, cancelling is no longer possible, so please send it back as a return after it's delivered.",
+        ),
+        note: 'expected: as high as the correct answer (judged by meaning, not wording)',
+      },
+      {
+        label: 'Factually wrong answer',
+        text: gevalStateEn('You can cancel anytime within 30 days of ordering. Please contact us by phone.'),
+        note: 'expected: low consistency (contradicts the expected answer)',
+      },
+      {
+        label: 'Off-topic answer',
+        text: gevalStateEn('We add new releases every week. You earn points worth 1% of your purchase. Thank you for shopping with us.'),
+        note: 'expected: low relevance (unrelated to the question)',
+      },
+      {
+        label: 'Broken grammar answer',
+        text: gevalStateEn('Cancel, before shipping preparation my page order history can. After arrive the return procedure do do.'),
+        note: 'expected: low fluency',
+      },
+      {
+        label: 'Heap-of-words answer',
+        text: gevalStateEn('My Page. Order history. Shipping preparation. Return procedure. Cancellable. After arrival.'),
+        note: 'expected: low coherence (a heap of related words)',
       },
     ],
   },
