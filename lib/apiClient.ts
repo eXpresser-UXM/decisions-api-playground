@@ -1,6 +1,6 @@
 // ブラウザ → Route Handler（app/api/*）の呼び出し。API ごとに axios インスタンスを分ける。
 import axios, { type AxiosInstance } from 'axios'
-import type { Answer, ApiErrorInfo, ApiId, ApiResult, ProxyEnvelope } from './types'
+import type { Answer, ApiErrorInfo, ApiId, ApiResult, ProxyEnvelope, TokenUsage } from './types'
 import { KEY_HEADER } from './types'
 
 const instances: Record<ApiId, AxiosInstance> = {
@@ -14,6 +14,7 @@ export type ApiJob<Res> = {
   request: unknown
   parse: (response: Res) => Answer[]
   model: (response: Res) => string
+  usage: (response: Res) => TokenUsage
 }
 
 /** 1つの API を呼ぶ。往復時間は axios 呼び出しの前後を performance.now() で計測する */
@@ -54,6 +55,7 @@ async function runOne<Res>(job: ApiJob<Res>, onUpdate: (id: ApiId, result: ApiRe
       ms: envelope.ms,
       roundTripMs,
       model: job.model(response),
+      usage: job.usage(response),
       answers: job.parse(response),
     })
   } else {

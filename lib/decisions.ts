@@ -1,7 +1,7 @@
 // OpenAI Decisions API 用の変換（共通形式 ⇔ Decisions API の形式）
 // 参照: https://developers.openai.com/api/docs/guides/decisions
 import type { Decision, DecisionCreateParams } from 'openai/resources/decisions'
-import type { Answer, Question } from './types'
+import type { Answer, Question, TokenUsage } from './types'
 
 export const DECISIONS_MODEL = 'gpt-6-luna'
 
@@ -50,6 +50,10 @@ export function buildDecisionsRequest(
     input,
     questions: questions.map(toDecisionsQuestion),
   }
+}
+
+export function parseDecisionsUsage(res: DecisionsResponse): TokenUsage {
+  return { input: res.usage?.input_tokens, output: res.usage?.output_tokens }
 }
 
 export function parseDecisionsResponse(questions: Question[], res: DecisionsResponse): Answer[] {

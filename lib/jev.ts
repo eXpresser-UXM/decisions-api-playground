@@ -1,6 +1,6 @@
 // Jev（TypeSafe System One API）用の変換（共通形式 ⇔ Jev の形式）
 // 参照: https://docs.typesafe.ai/api
-import type { Answer, Question } from './types'
+import type { Answer, Question, TokenUsage } from './types'
 
 /** jev-latest ではなく固定バージョンを使う（https://docs.typesafe.ai/models） */
 export const JEV_MODEL = 'jev-1.13.0'
@@ -27,7 +27,15 @@ type JevAnswer =
     }
   | { type: 'noul'; noul: number }
 
-export type JevResponse = { model: string; answers: Record<string, JevAnswer> }
+export type JevResponse = {
+  model: string
+  answers: Record<string, JevAnswer>
+  usage?: { input_tokens: number; output_tokens: number }
+}
+
+export function parseJevUsage(res: JevResponse): TokenUsage {
+  return { input: res.usage?.input_tokens, output: res.usage?.output_tokens }
+}
 
 function toJevQuestion(q: Question): JevQuestion {
   switch (q.kind) {

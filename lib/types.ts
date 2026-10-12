@@ -34,6 +34,9 @@ export type Answer =
   | { kind: 'predicate'; name: string; probability: number }
   | { kind: 'refusal'; name: string }
 
+/** レスポンスの usage にあるトークン数（含まれない項目は undefined） */
+export type TokenUsage = { input?: number; output?: number }
+
 export type ApiErrorInfo = {
   /** HTTP ステータスコード（通信エラー等で無い場合は undefined） */
   status?: number
@@ -66,6 +69,7 @@ export type ApiResult =
       /** ブラウザから見た往復時間（axios） */
       roundTripMs: number
       model: string
+      usage: TokenUsage
       answers: Answer[]
     }
   | { state: 'error'; request: unknown; ms: number | null; roundTripMs: number; error: ApiErrorInfo }

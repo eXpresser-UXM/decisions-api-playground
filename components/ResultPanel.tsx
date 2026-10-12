@@ -4,11 +4,9 @@ import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
-import Divider from '@mui/material/Divider'
 import LinearProgress from '@mui/material/LinearProgress'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
@@ -20,6 +18,8 @@ type Props = {
   result: ApiResult
   /** タイトル下に小さく出す注意書き */
   note?: ReactNode
+  /** 判定する問いの数（行をそろえるために使う） */
+  questionCount: number
 }
 
 const pct = (p: number) => `${(p * 100).toFixed(1)}%`
@@ -119,16 +119,45 @@ function AnswerView({ answer }: { answer: Answer }) {
   }
 }
 
-export function ResultPanel({ title, result, note }: Props) {
+/** 左右のカードの行（ヘッダ・情報・各問い）をそろえるための行数 */
+export const panelRows = (questionCount: number) => 2 + questionCount
+
+const fmtTokens = (n: number | undefined) => (n === undefined ? '—' : n.toLocaleString())
+
+function Stat({ label, children, sub }: { label: string; children: ReactNode; sub?: ReactNode }) {
+  return (
+    <Box>
+      <Typography variant="caption" color="text.secondary">
+        {label}
+      </Typography>
+      {children}
+      {sub && (
+        <Typography variant="caption" color="text.secondary" component="div">
+          {sub}
+        </Typography>
+      )}
+    </Box>
+  )
+}
+
+export function ResultPanel({ title, result, note, questionCount }: Props) {
   const [open, setOpen] = useState(false)
   const hasJson = result.state === 'ok' || result.state === 'error' || result.state === 'loading'
+  const rows = panelRows(questionCount)
+  // 区切り線は各行の上に引く（CardContent ではなく行ごとに置くため）
+  const rowSx = { px: 2, py: 2, borderTop: 1, borderColor: 'divider' }
 
   return (
-    <Card variant="outlined" sx={{ height: '100%' }}>
+    // 親（ResultGrid）の行を subgrid で共有し、左右のカードで各行の高さをそろえる
+    <Card
+      variant="outlined"
+      sx={{ display: 'grid', gridTemplateRows: 'subgrid', gridRow: `span ${rows}`, rowGap: 0 }}
+    >
       <CardHeader
         title={title}
         subheader={note}
         slotProps={{ title: { variant: 'h6' }, subheader: { variant: 'caption' } }}
+        sx={{ alignItems: 'flex-start' }}
         action={
           hasJson && (
             <Button size="small" variant="outlined" onClick={() => setOpen(true)}>
@@ -137,62 +166,59 @@ export function ResultPanel({ title, result, note }: Props) {
           )
         }
       />
-      <Divider />
-      <CardContent>
-        {result.state === 'idle' && <Typography color="text.secondary">「判定する」を押すと結果が出ます。</Typography>}
-        {result.state === 'no-key' && <Alert severity="warning">キー未設定（呼び出していません）</Alert>}
-        {result.state === 'unsupported' && <Alert severity="info">{result.reason}</Alert>}
-        {result.state === 'loading' && (
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <CircularProgress size={20} />
-            <Typography color="text.secondary">判定中…</Typography>
+
+      {result.state === 'ok' ? (
+        <>
+          <Stack direction="row" spacing={4} useFlexGap sx={{ ...rowSx, flexWrap: 'wrap' }}>
+            <Stat label="応答時間（API）" sub={`ブラウザからの往復 ${msText(result.roundTripMs)}`}>
+              <Typography variant="h5" sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                {msText(result.ms)}
+              </Typography>
+            </Stat>
+            <Stat label="トークン（レスポンスの usage）" sub={`出力 ${fmtTokens(result.usage.output)}`}>
+              <Typography variant="h5" sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                入力 {fmtTokens(result.usage.input)}
+              </Typography>
+            </Stat>
+            <Stat label="モデル（レスポンスの値）">
+              <Typography sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{result.model}</Typography>
+            </Stat>
           </Stack>
-        )}
-
-        {result.state === 'error' && (
-          <Alert severity="error">
-            <Typography sx={{ fontWeight: 700 }}>
-              エラー{result.error.status !== undefined && `（HTTP ${result.error.status}）`}
-              {result.ms !== null && `　${msText(result.ms)}`}
-            </Typography>
-            <Typography variant="body2" sx={{ mt: 0.5 }}>
-              {result.error.message}
-            </Typography>
-            {result.error.body !== undefined && (
-              <Box component="pre" sx={{ mt: 1, mb: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 12 }}>
-                {JSON.stringify(result.error.body, null, 2)}
-              </Box>
-            )}
-          </Alert>
-        )}
-
-        {result.state === 'ok' && (
-          <Stack spacing={3}>
-            <Stack direction="row" spacing={4} sx={{ flexWrap: 'wrap' }}>
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  応答時間（API）
-                </Typography>
-                <Typography variant="h5" sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
-                  {msText(result.ms)}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  ブラウザからの往復 {msText(result.roundTripMs)}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  モデル（レスポンスの値）
-                </Typography>
-                <Typography sx={{ fontFamily: 'monospace', fontWeight: 600 }}>{result.model}</Typography>
-              </Box>
+          {result.answers.map((a) => (
+            <Box key={a.name} sx={rowSx}>
+              <AnswerView answer={a} />
+            </Box>
+          ))}
+        </>
+      ) : (
+        <Box sx={{ ...rowSx, gridRow: `span ${rows - 1}` }}>
+          {result.state === 'idle' && <Typography color="text.secondary">「判定する」を押すと結果が出ます。</Typography>}
+          {result.state === 'no-key' && <Alert severity="warning">キー未設定（呼び出していません）</Alert>}
+          {result.state === 'unsupported' && <Alert severity="info">{result.reason}</Alert>}
+          {result.state === 'loading' && (
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <CircularProgress size={20} />
+              <Typography color="text.secondary">判定中…</Typography>
             </Stack>
-            {result.answers.map((a) => (
-              <AnswerView key={a.name} answer={a} />
-            ))}
-          </Stack>
-        )}
-      </CardContent>
+          )}
+          {result.state === 'error' && (
+            <Alert severity="error">
+              <Typography sx={{ fontWeight: 700 }}>
+                エラー{result.error.status !== undefined && `（HTTP ${result.error.status}）`}
+                {result.ms !== null && `　${msText(result.ms)}`}
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 0.5 }}>
+                {result.error.message}
+              </Typography>
+              {result.error.body !== undefined && (
+                <Box component="pre" sx={{ mt: 1, mb: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 12 }}>
+                  {JSON.stringify(result.error.body, null, 2)}
+                </Box>
+              )}
+            </Alert>
+          )}
+        </Box>
+      )}
 
       {hasJson && (
         <JsonModal

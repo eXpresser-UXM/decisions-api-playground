@@ -5,7 +5,6 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Container from '@mui/material/Container'
-import Grid from '@mui/material/Grid'
 import Link from '@mui/material/Link'
 import Stack from '@mui/material/Stack'
 import Tab from '@mui/material/Tab'
@@ -14,8 +13,13 @@ import TextField from '@mui/material/TextField'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import { runAll, type ApiJob } from '@/lib/apiClient'
-import { buildDecisionsRequest, parseDecisionsResponse, type DecisionsResponse } from '@/lib/decisions'
-import { buildJevRequest, parseJevResponse, type JevResponse } from '@/lib/jev'
+import {
+  buildDecisionsRequest,
+  parseDecisionsResponse,
+  parseDecisionsUsage,
+  type DecisionsResponse,
+} from '@/lib/decisions'
+import { buildJevRequest, parseJevResponse, parseJevUsage, type JevResponse } from '@/lib/jev'
 import { SAMPLE_INQUIRIES, TEXT_QUESTIONS } from '@/lib/questions'
 import type { ApiId, ApiResult, Keys } from '@/lib/types'
 import { ResultPanel } from './ResultPanel'
@@ -41,6 +45,7 @@ export function Demo() {
       request: buildJevRequest(questions, text),
       parse: (res) => parseJevResponse(questions, res),
       model: (res) => res.model,
+      usage: parseJevUsage,
     }
     const decisions: ApiJob<DecisionsResponse> = {
       id: 'decisions',
@@ -48,6 +53,7 @@ export function Demo() {
       request: buildDecisionsRequest(questions, text),
       parse: (res) => parseDecisionsResponse(questions, res),
       model: (res) => res.model,
+      usage: parseDecisionsUsage,
     }
     setRunning(true)
     setResults(IDLE)
@@ -103,26 +109,31 @@ export function Demo() {
               </Box>
             </Stack>
 
-            <Grid container spacing={3}>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <ResultPanel
-                  title="Jev（TypeSafe）"
-                  result={results.jev}
-                  note={
-                    <>
-                      ※ Jev の主な学習言語は英語で、日本語は精度が英語と同等ではないとされています（
-                      <Link href="https://docs.typesafe.ai/models#language-support" target="_blank" rel="noopener noreferrer">
-                        公式ドキュメント
-                      </Link>
-                      より）
-                    </>
-                  }
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <ResultPanel title="Decisions API（OpenAI）" result={results.decisions} />
-              </Grid>
-            </Grid>
+            {/* 2枚のカードが行を subgrid で共有し、ヘッダ・情報・各問いの高さを左右でそろえる */}
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                columnGap: 3,
+                rowGap: { xs: 3, md: 0 },
+              }}
+            >
+              <ResultPanel
+                title="Jev（TypeSafe）"
+                result={results.jev}
+                questionCount={TEXT_QUESTIONS.length}
+                note={
+                  <>
+                    ※ Jev の主な学習言語は英語で、日本語は精度が英語と同等ではないとされています（
+                    <Link href="https://docs.typesafe.ai/models#language-support" target="_blank" rel="noopener noreferrer">
+                      公式ドキュメント
+                    </Link>
+                    より）
+                  </>
+                }
+              />
+              <ResultPanel title="Decisions API（OpenAI）" result={results.decisions} questionCount={TEXT_QUESTIONS.length} />
+            </Box>
           </Stack>
         )}
       </Container>
