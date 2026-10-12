@@ -14,6 +14,7 @@ import TextField from '@mui/material/TextField'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Typography from '@mui/material/Typography'
+import { validateQuestion } from '@/lib/questionValidation'
 import type { Question } from '@/lib/types'
 
 type Kind = Question['kind']
@@ -23,12 +24,6 @@ export const KIND_LABEL: Record<Kind, string> = {
   score: 'Score',
   predicate: 'Noul / predicate',
 }
-
-// 件数の上限は Jev のドキュメントによる（Choice は最大255、Score は2〜10段階。https://docs.typesafe.ai/api）
-const MAX_CHOICES = 255
-const MAX_LEVELS = 10
-// 名前の形式はこのアプリの決まり（両 API のドキュメントに制約の記載はないが、JSON のキーとして扱いやすい形にそろえる）
-const NAME_PATTERN = /^[A-Za-z][A-Za-z0-9_]*$/
 
 type Row = { key: string; description: string }
 
@@ -79,26 +74,6 @@ function fromDraft(d: Draft): Question {
   }
 }
 
-function validate(d: Draft, otherNames: string[]): string[] {
-  const errors: string[] = []
-  const name = d.name.trim()
-  if (!name) errors.push('名前を入力してください')
-  else if (!NAME_PATTERN.test(name)) errors.push('名前は英字で始め、英数字と _ だけにしてください（例：is_urgent）')
-  else if (otherNames.includes(name)) errors.push(`名前「${name}」はすでに使われています`)
-  if (!d.instructions.trim()) errors.push('問いを入力してください')
-  if (d.kind === 'choice' || d.kind === 'score') {
-    const keys = d.rows.map((r) => r.key.trim())
-    const what = d.kind === 'choice' ? '選択肢の値' : '段階の名前'
-    const max = d.kind === 'choice' ? MAX_CHOICES : MAX_LEVELS
-    if (keys.length < 2) errors.push(`${what}は2つ以上必要です`)
-    if (keys.length > max) errors.push(`${what}は${max}個までです`)
-    if (keys.some((k) => !k)) errors.push(`空の${what}があります`)
-    const filled = keys.filter(Boolean)
-    if (d.kind === 'choice' && new Set(filled).size !== filled.length) errors.push('選択肢の値が重複しています')
-  }
-  return errors
-}
-
 type Props = {
   /** 編集する問い。null なら新規追加 */
   question: Question | null
@@ -112,7 +87,7 @@ type Props = {
 export function QuestionEditor({ question, otherNames, onSave, onClose }: Props) {
   const [draft, setDraft] = useState<Draft>(() => toDraft(question))
   const [touched, setTouched] = useState(false)
-  const errors = validate(draft, otherNames)
+  const errors = validateQuestion(fromDraft(draft), otherNames)
   const set = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }))
   const setRow = (i: number, patch: Partial<Row>) =>
     setDraft((d) => ({ ...d, rows: d.rows.map((r, j) => (j === i ? { ...r, ...patch } : r)) }))

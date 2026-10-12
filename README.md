@@ -15,6 +15,7 @@ DX道場（2026/10/14）のデモ用に作りました。
 - 問い合わせ文を入力して「判定する」を押すと、Jev と Decisions API を**並列に**呼び出します
 - 問い合わせ文（State）の横で、判定する問い（Questions）を追加・編集・削除できます。種類は Choice・Score・Noul（predicate）です。
   変更はメモリにのみ保持し、再読み込みや「初期値に戻す」で元に戻ります。サンプルを押すと State と Questions の両方が置き換わります
+- Questions の右上の「JSON」から、問い全体を JSON で直接編集できます（このアプリの共通形式。判定時に各 API の形式へ変換します）
 - 初期値の問い：担当の振り分け（route／Choice）、お客さんの態度（attitude／Score）、本人確認の要否（needs_verification／Noul）、
   商品の破損の有無（visible_damage／Noul）と程度（damage_level／Score）
 - 「画像」の付いた問いは、商品写真を添付したとき（ボタンから選ぶか、コピーして貼り付け）だけ判定します。

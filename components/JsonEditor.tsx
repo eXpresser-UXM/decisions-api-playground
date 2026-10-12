@@ -17,21 +17,23 @@ self.MonacoEnvironment = {
 }
 loader.config({ monaco })
 
-type Props = {
-  value: string
-  readOnly: boolean
-}
+type Props =
+  | { value: string; readOnly: true }
+  /** 編集できる場合は初期値だけ渡し、以降の内容は onChange で受け取る（毎回 value を戻すとカーソルが飛ぶため） */
+  | { value: string; readOnly: false; onChange: (value: string) => void }
 
-export default function JsonEditor({ value, readOnly }: Props) {
+export default function JsonEditor(props: Props) {
   const dark = window.matchMedia('(prefers-color-scheme: dark)').matches
   return (
     <Editor
       height="100%"
       language="json"
-      value={value}
+      {...(props.readOnly
+        ? { value: props.value }
+        : { defaultValue: props.value, onChange: (v: string | undefined) => props.onChange(v ?? '') })}
       theme={dark ? 'vs-dark' : 'light'}
       options={{
-        readOnly,
+        readOnly: props.readOnly,
         folding: true,
         minimap: { enabled: false },
         scrollBeyondLastLine: false,

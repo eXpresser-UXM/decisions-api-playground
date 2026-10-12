@@ -10,6 +10,7 @@ import Typography from '@mui/material/Typography'
 import { DEFAULT_QUESTIONS } from '@/lib/questions'
 import type { Question } from '@/lib/types'
 import { KIND_LABEL, QuestionEditor } from './QuestionEditor'
+import { QuestionsJsonDialog } from './QuestionsJsonDialog'
 
 type Props = {
   questions: Question[]
@@ -35,6 +36,7 @@ export function QuestionList({ questions, onChange }: Props) {
   const [editing, setEditing] = useState<Editing>(null)
   // ダイアログを開くたびに作り直して、前回の入力が残らないようにする
   const [editorKey, setEditorKey] = useState(0)
+  const [jsonOpen, setJsonOpen] = useState(false)
 
   const open = (target: Editing) => {
     setEditorKey((k) => k + 1)
@@ -62,6 +64,9 @@ export function QuestionList({ questions, onChange }: Props) {
         </Button>
         <Button size="small" variant="contained" onClick={() => open({ index: null })} sx={{ ml: 1 }}>
           ＋ 追加
+        </Button>
+        <Button size="small" variant="outlined" onClick={() => setJsonOpen(true)} sx={{ ml: 1 }}>
+          JSON
         </Button>
       </Stack>
 
@@ -114,6 +119,17 @@ export function QuestionList({ questions, onChange }: Props) {
           </Stack>
         ))}
       </Box>
+
+      {jsonOpen && (
+        <QuestionsJsonDialog
+          questions={questions}
+          onApply={(qs) => {
+            onChange(qs)
+            setJsonOpen(false)
+          }}
+          onClose={() => setJsonOpen(false)}
+        />
+      )}
 
       {editing && (
         <QuestionEditor
