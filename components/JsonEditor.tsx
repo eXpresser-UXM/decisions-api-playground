@@ -38,6 +38,8 @@ export default function JsonEditor(props: Props) {
         minimap: { enabled: false },
         scrollBeyondLastLine: false,
         wordWrap: 'on',
+        // 全角の括弧などを「紛らわしい文字」として枠で囲む表示を止める（日本語では普通に使うため）
+        unicodeHighlight: { ambiguousCharacters: false },
         fontSize: 13,
         automaticLayout: true,
       }}
