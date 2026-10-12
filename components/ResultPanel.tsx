@@ -34,7 +34,7 @@ function Bars({ items, highlight }: { items: Probability[]; highlight?: string }
           <Stack key={p.key} direction="row" spacing={1} sx={{ alignItems: 'center' }}>
             <Typography
               variant="body2"
-              sx={{ width: 96, flexShrink: 0, fontWeight: top ? 700 : 400, fontFamily: 'monospace' }}
+              sx={{ width: 120, flexShrink: 0, fontWeight: top ? 700 : 400, fontFamily: 'monospace' }}
             >
               {p.label}
             </Typography>
@@ -93,8 +93,11 @@ function AnswerView({ answer }: { answer: Answer }) {
       return (
         <Box>
           <AnswerHead name={answer.name} kind="Score" />
-          <Main value={answer.score.toFixed(2)} sub={`Confidence ${answer.confidence.toFixed(3)}`} />
-          <Bars items={answer.probabilities} highlight={top.key} />
+          <Main
+            value={answer.score.toFixed(2)}
+            sub={`最も確率が高い段階：${top.label}（${top.key}）　Confidence ${answer.confidence.toFixed(3)}`}
+          />
+          <Bars items={answer.probabilities.map((p) => ({ ...p, label: `${p.key}: ${p.label}` }))} highlight={top.key} />
         </Box>
       )
     }
