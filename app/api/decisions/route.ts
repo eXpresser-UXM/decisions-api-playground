@@ -1,14 +1,16 @@
 // OpenAI Decisions API を公式 SDK で呼び出す中継。
-// API キーはリクエストヘッダーで受け取り、この呼び出しにだけ使う（保存・ログ出力はしない）。
+// API キーはリクエストヘッダー（画面で入力した値）か .env から取り、この呼び出しにだけ使う（保存・ログ出力はしない）。
 import OpenAI, { APIError } from 'openai'
 import type { DecisionsRequest } from '@/lib/decisions'
+import { resolveKey } from '@/lib/envKeys'
 import { KEY_HEADER, type ProxyEnvelope } from '@/lib/types'
 
 export async function POST(request: Request) {
-  const apiKey = request.headers.get(KEY_HEADER)?.trim()
+  // 画面で入力したキー（ヘッダー）を優先し、なければ .env のキーを使う
+  const apiKey = resolveKey(request, KEY_HEADER, 'decisions')
   if (!apiKey) {
     return Response.json(
-      { ok: false, ms: null, error: { message: 'OpenAI の APIキーが未設定です' } } satisfies ProxyEnvelope,
+      { ok: false, ms: null, error: { message: 'OpenAI の APIキーが未設定です（画面でも .env でも設定されていません）' } } satisfies ProxyEnvelope,
       { status: 400 },
     )
   }

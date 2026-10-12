@@ -10,7 +10,10 @@ const instances: Record<ApiId, AxiosInstance> = {
 
 export type ApiJob<Res> = {
   id: ApiId
+  /** 画面で入力したキー（空なら送らず、サーバー側で .env のキーを使う） */
   apiKey: string
+  /** .env にキーがあるか（値はブラウザに来ない） */
+  hasEnvKey: boolean
   request: unknown
   parse: (response: Res) => Answer[]
   model: (response: Res) => string
@@ -21,7 +24,7 @@ export type ApiJob<Res> = {
 
 /** 1つの API を呼ぶ。往復時間は axios 呼び出しの前後を performance.now() で計測する */
 async function runOne<Res>(job: ApiJob<Res>, onUpdate: (id: ApiId, result: ApiResult) => void) {
-  if (!job.apiKey) {
+  if (!job.apiKey && !job.hasEnvKey) {
     onUpdate(job.id, { state: 'no-key' })
     return
   }
@@ -34,7 +37,8 @@ async function runOne<Res>(job: ApiJob<Res>, onUpdate: (id: ApiId, result: ApiRe
   let envelope: ProxyEnvelope
   try {
     const res = await instances[job.id].post<ProxyEnvelope>('', job.request, {
-      headers: { [KEY_HEADER]: job.apiKey },
+      // 画面で入力したキーだけをヘッダーで送る。なければ送らず、サーバー側で .env のキーを使う
+      headers: job.apiKey ? { [KEY_HEADER]: job.apiKey } : {},
       // 4xx/5xx でも封筒（ProxyEnvelope）を読む
       validateStatus: () => true,
     })
@@ -66,6 +70,18 @@ async function runOne<Res>(job: ApiJob<Res>, onUpdate: (id: ApiId, result: ApiRe
     })
   } else {
     onUpdate(job.id, { state: 'error', request: job.request, ms: envelope.ms, roundTripMs, error: envelope.error })
+  }
+}
+
+export type EnvStatus = { openai: boolean; typesafe: boolean }
+
+/** .env に APIキーがあるかどうか（キーの値は返らない） */
+export async function fetchEnvStatus(): Promise<EnvStatus> {
+  try {
+    const res = await axios.get<EnvStatus>('/api/env-status')
+    return { openai: !!res.data.openai, typesafe: !!res.data.typesafe }
+  } catch {
+    return { openai: false, typesafe: false }
   }
 }
 

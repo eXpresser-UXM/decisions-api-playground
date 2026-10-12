@@ -7,7 +7,6 @@ import IconButton from '@mui/material/IconButton'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import { DEFAULT_QUESTIONS } from '@/lib/questions'
 import type { Question } from '@/lib/types'
 import { KIND_LABEL, QuestionEditor } from './QuestionEditor'
 import { QuestionsJsonDialog } from './QuestionsJsonDialog'
@@ -32,7 +31,8 @@ function summary(q: Question) {
   }
 }
 
-// Questions（Jev の questions／Decisions API の questions）の一覧。追加・編集・削除はメモリ上だけで行う
+// Questions（Jev の questions／Decisions API の questions）の一覧。追加・編集・削除はメモリ上だけで行う。
+// 初期の Questions に戻すときは、サンプル一覧から呼び出す
 export function QuestionList({ questions, onChange }: Props) {
   const [editing, setEditing] = useState<Editing>(null)
   // ダイアログを開くたびに作り直して、前回の入力が残らないようにする
@@ -59,10 +59,7 @@ export function QuestionList({ questions, onChange }: Props) {
       <SectionTitle
         action={
           <>
-            <Button size="small" onClick={() => onChange(DEFAULT_QUESTIONS)}>
-              初期値に戻す
-            </Button>
-            <Button size="small" variant="contained" onClick={() => open({ index: null })} sx={{ ml: 1 }}>
+            <Button size="small" variant="contained" onClick={() => open({ index: null })}>
               ＋ 追加
             </Button>
             <Button size="small" variant="outlined" onClick={() => setJsonOpen(true)} sx={{ ml: 1 }}>

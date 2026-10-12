@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -13,7 +13,7 @@ import Tabs from '@mui/material/Tabs'
 import TextField from '@mui/material/TextField'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
-import { runAll, type ApiJob } from '@/lib/apiClient'
+import { fetchEnvStatus, runAll, type ApiJob, type EnvStatus } from '@/lib/apiClient'
 import {
   buildDecisionsInput,
   buildDecisionsRequest,
@@ -47,6 +47,11 @@ export function Demo() {
   const [screen, setScreen] = useState<Screen>('settings')
   // APIキーはメモリ（state）にのみ保持する
   const [keys, setKeys] = useState<Keys>({ openai: '', typesafe: '' })
+  // .env にキーがあるか（あれば初期値として使う。画面で入力した値が優先）
+  const [envStatus, setEnvStatus] = useState<EnvStatus>({ openai: false, typesafe: false })
+  useEffect(() => {
+    void fetchEnvStatus().then(setEnvStatus)
+  }, [])
   const [text, setText] = useState('')
   const [results, setResults] = useState<Record<ApiId, ApiResult>>(IDLE)
   const [running, setRunning] = useState(false)
@@ -66,6 +71,7 @@ export function Demo() {
     const jev: ApiJob<JevResponse> = {
       id: 'jev',
       apiKey: keys.typesafe,
+      hasEnvKey: envStatus.typesafe,
       request: buildJevRequest(jevQuestions, text),
       parse: (res) => {
         const answers = parseJevResponse(jevQuestions, res)
@@ -84,6 +90,7 @@ export function Demo() {
     const decisions: ApiJob<DecisionsResponse> = {
       id: 'decisions',
       apiKey: keys.openai,
+      hasEnvKey: envStatus.openai,
       request: buildDecisionsRequest(allQuestions, buildDecisionsInput(text, image?.dataUrl)),
       parse: (res) => parseDecisionsResponse(allQuestions, res),
       model: (res) => res.model,
@@ -117,7 +124,7 @@ export function Demo() {
       {/* 右下の固定表記と重ならないよう下側を広めに取る */}
       <Container maxWidth="xl" sx={{ pt: 4, pb: 6 }}>
         {screen === 'settings' ? (
-          <Settings keys={keys} onChange={setKeys} />
+          <Settings keys={keys} envStatus={envStatus} onChange={setKeys} />
         ) : (
           <Stack spacing={3}>
             <SampleList
