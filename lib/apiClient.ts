@@ -15,12 +15,18 @@ export type ApiJob<Res> = {
   parse: (response: Res) => Answer[]
   model: (response: Res) => string
   usage: (response: Res) => TokenUsage
+  /** 呼び出さない理由（例：Jev に送れる問いがない）。指定すると呼び出さずにその旨を表示する */
+  skipReason?: string
 }
 
 /** 1つの API を呼ぶ。往復時間は axios 呼び出しの前後を performance.now() で計測する */
 async function runOne<Res>(job: ApiJob<Res>, onUpdate: (id: ApiId, result: ApiResult) => void) {
   if (!job.apiKey) {
     onUpdate(job.id, { state: 'no-key' })
+    return
+  }
+  if (job.skipReason) {
+    onUpdate(job.id, { state: 'unsupported', reason: job.skipReason })
     return
   }
   onUpdate(job.id, { state: 'loading', request: job.request })

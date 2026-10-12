@@ -23,14 +23,15 @@ function toDecisionsQuestion(q: Question): DecisionsQuestion {
         type: 'choice',
         name: q.name,
         instructions: q.instructions,
-        choices: q.options.map((o) => ({ value: o.value, description: o.description })),
+        // description は省略可能。空なら送らない
+        choices: q.options.map((o) => (o.description ? { value: o.value, description: o.description } : { value: o.value })),
       }
     case 'score':
       return {
         type: 'score',
         name: q.name,
         instructions: q.instructions,
-        levels: q.levels.map((l) => ({ label: l.label, description: l.description })),
+        levels: q.levels.map((l) => (l.description ? { label: l.label, description: l.description } : { label: l.label })),
       }
     case 'predicate': {
       // predicate には true/false の補足欄がないため、補足は instructions に含める

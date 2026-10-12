@@ -29,9 +29,10 @@ import {
   parseJevUsage,
   type JevResponse,
 } from '@/lib/jev'
-import { IMAGE_QUESTIONS, SAMPLE_INQUIRIES, TEXT_QUESTIONS } from '@/lib/questions'
-import type { ApiId, ApiResult, Keys } from '@/lib/types'
+import { DEFAULT_QUESTIONS, SAMPLES } from '@/lib/questions'
+import type { Answer, ApiId, ApiResult, Keys, Question } from '@/lib/types'
 import { ImageAttach, type AttachedImage } from './ImageAttach'
+import { QuestionList } from './QuestionList'
 import { ResultPanel } from './ResultPanel'
 import { Settings } from './Settings'
 
@@ -47,23 +48,35 @@ export function Demo() {
   const [results, setResults] = useState<Record<ApiId, ApiResult>>(IDLE)
   const [running, setRunning] = useState(false)
   const [image, setImage] = useState<AttachedImage | null>(null)
-  // 結果欄の行数（直前に判定した問いの数）。画像を付け外ししても表示中の結果がずれないよう判定時に決める
-  const [questionCount, setQuestionCount] = useState(TEXT_QUESTIONS.length)
+  // Questions（画面で追加・編集・削除できる。メモリのみで、再読み込みで初期値に戻る）
+  const [questions, setQuestions] = useState<Question[]>(DEFAULT_QUESTIONS)
+  // 結果欄の行数（直前に判定した問いの数）。問いや画像を変えても表示中の結果がずれないよう判定時に決める
+  const [questionCount, setQuestionCount] = useState(0)
+
+  // 画像の問いは画像を添付したときだけ判定する
+  const askedQuestions = questions.filter((q) => !q.image || image)
 
   const judge = async () => {
-    // 画像があれば画像の問いも加える。Jev には画像を送れないため、テキストの問いだけを送る
-    const imageQuestions = image ? IMAGE_QUESTIONS : []
-    const allQuestions = [...TEXT_QUESTIONS, ...imageQuestions]
+    const allQuestions = askedQuestions
+    // Jev には画像を送れないため、画像の問いを除いて送る
+    const jevQuestions = allQuestions.filter((q) => !q.image)
     const jev: ApiJob<JevResponse> = {
       id: 'jev',
       apiKey: keys.typesafe,
-      request: buildJevRequest(TEXT_QUESTIONS, text),
-      parse: (res) => [
-        ...parseJevResponse(TEXT_QUESTIONS, res),
-        ...imageQuestions.map((q) => ({ kind: 'unsupported' as const, name: q.name, reason: JEV_IMAGE_UNSUPPORTED })),
-      ],
+      request: buildJevRequest(jevQuestions, text),
+      parse: (res) => {
+        const answers = parseJevResponse(jevQuestions, res)
+        // 結果欄の行を Decisions API とそろえるため、画像の問いも同じ位置に「画像非対応」として並べる
+        return allQuestions.map(
+          (q): Answer =>
+            q.image
+              ? { kind: 'unsupported', name: q.name, reason: JEV_IMAGE_UNSUPPORTED }
+              : answers.find((a) => a.name === q.name)!,
+        )
+      },
       model: (res) => res.model,
       usage: parseJevUsage,
+      skipReason: jevQuestions.length === 0 ? `送れる問いがありません（${JEV_IMAGE_UNSUPPORTED}）` : undefined,
     }
     const decisions: ApiJob<DecisionsResponse> = {
       id: 'decisions',
@@ -105,27 +118,64 @@ export function Demo() {
         ) : (
           <Stack spacing={3}>
             <Stack spacing={1.5}>
-              <TextField
-                label="問い合わせ文"
-                multiline
-                minRows={3}
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="例：頼んだ本がまだ届かないんですけど！"
-              />
+              {/* 左：State（問い合わせ文）、右：Questions */}
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', md: '7fr 5fr' },
+                  gap: 2,
+                  alignItems: 'stretch',
+                }}
+              >
+                <TextField
+                  label="問い合わせ文（State）"
+                  multiline
+                  minRows={8}
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="例：頼んだ本がまだ届かないんですけど！"
+                  sx={{ '& .MuiInputBase-root': { height: '100%', alignItems: 'flex-start' } }}
+                />
+                <QuestionList questions={questions} onChange={setQuestions} />
+              </Box>
               <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
                 <Typography variant="body2" color="text.secondary">
                   サンプル：
                 </Typography>
-                {SAMPLE_INQUIRIES.map((s) => (
-                  <Chip key={s.text} label={s.text} title={s.note} onClick={() => setText(s.text)} variant="outlined" />
+                {SAMPLES.map((s) => (
+                  <Chip
+                    key={s.text}
+                    label={s.text}
+                    title={s.note}
+                    // State と Questions の両方をサンプルの内容に置き換える
+                    onClick={() => {
+                      setText(s.text)
+                      setQuestions(s.questions)
+                    }}
+                    variant="outlined"
+                  />
                 ))}
               </Stack>
               <ImageAttach image={image} onChange={setImage} />
               <Box>
-                <Button variant="contained" size="large" onClick={judge} disabled={running || !text.trim()}>
-                  判定する
-                </Button>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={judge}
+                    disabled={running || !text.trim() || askedQuestions.length === 0}
+                  >
+                    判定する
+                  </Button>
+                  <Typography variant="body2" color="text.secondary">
+                    {askedQuestions.length === 0
+                      ? '判定する問いがありません'
+                      : `${askedQuestions.length}問を判定します` +
+                        (questions.length > askedQuestions.length
+                          ? `（画像の問い${questions.length - askedQuestions.length}問は、画像を添付すると判定します）`
+                          : '')}
+                  </Typography>
+                </Stack>
               </Box>
             </Stack>
 

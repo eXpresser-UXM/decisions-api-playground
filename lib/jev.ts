@@ -12,7 +12,7 @@ export const JEV_PRICING: Pricing = {
 }
 
 type JevQuestion =
-  | { type: 'choice'; instructions: string; criteria: Record<string, string> }
+  | { type: 'choice'; instructions: string; criteria: Record<string, string | null> }
   | { type: 'score'; instructions: string; criteria: [string, string, ...string[]] }
   | { type: 'noul'; instructions: string; criteria?: { true?: string; false?: string } }
 
@@ -49,14 +49,19 @@ function toJevQuestion(q: Question): JevQuestion {
       return {
         type: 'choice',
         instructions: q.instructions,
-        criteria: Object.fromEntries(q.options.map((o) => [o.value, o.description])),
+        // 説明が空の選択肢は null（https://docs.typesafe.ai/api の Choice criteria）
+        criteria: Object.fromEntries(q.options.map((o) => [o.value, o.description || null])),
       }
     case 'score':
       return {
         type: 'score',
         instructions: q.instructions,
         // Score は2段階以上（共通形式の側で保証する）
-        criteria: q.levels.map((l) => `${l.label}：${l.description}`) as [string, string, ...string[]],
+        criteria: q.levels.map((l) => (l.description ? `${l.label}：${l.description}` : l.label)) as [
+          string,
+          string,
+          ...string[],
+        ],
       }
     case 'predicate': {
       const criteria: { true?: string; false?: string } = {}

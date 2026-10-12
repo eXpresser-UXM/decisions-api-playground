@@ -1,25 +1,28 @@
 // API に依存しない共通形式（問い・選択肢・結果）
 
-export type ChoiceQuestion = {
-  kind: 'choice'
+type QuestionBase = {
+  /** 答えを識別する名前（Jev の questions のキー／Decisions API の name） */
   name: string
   instructions: string
+  /** 画像についての問い。画像を添付したときだけ判定する（Jev は画像非対応） */
+  image?: boolean
+}
+
+export type ChoiceQuestion = QuestionBase & {
+  kind: 'choice'
+  /** description は空でもよい */
   options: { value: string; description: string }[]
 }
 
-export type ScoreQuestion = {
+export type ScoreQuestion = QuestionBase & {
   kind: 'score'
-  name: string
-  instructions: string
-  /** 低い → 高いの順 */
+  /** 低い → 高いの順。description は空でもよい */
   levels: { label: string; description: string }[]
 }
 
 /** Jev の Noul ／ Decisions API の predicate */
-export type PredicateQuestion = {
+export type PredicateQuestion = QuestionBase & {
   kind: 'predicate'
-  name: string
-  instructions: string
   whenTrue?: string
   whenFalse?: string
 }

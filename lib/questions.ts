@@ -42,12 +42,14 @@ export const TEXT_QUESTIONS: Question[] = [ROUTE, ATTITUDE, NEEDS_VERIFICATION]
 export const VISIBLE_DAMAGE: Question = {
   kind: 'predicate',
   name: 'visible_damage',
+  image: true,
   instructions: '商品に目に見える破損（割れ、破れ、へこみ）があるか？ 影や梱包の傷は無視する。',
 }
 
 export const DAMAGE_LEVEL: Question = {
   kind: 'score',
   name: 'damage_level',
+  image: true,
   instructions: '商品の破損の程度はどのくらいか？ 影や梱包の傷は無視する。',
   levels: [
     { label: 'なし', description: '商品に目に見える破損はない' },
@@ -58,10 +60,17 @@ export const DAMAGE_LEVEL: Question = {
 
 export const IMAGE_QUESTIONS: Question[] = [VISIBLE_DAMAGE, DAMAGE_LEVEL]
 
+/** 画面の Questions の初期値（画面で追加・編集・削除できる。再読み込みでこの値に戻る） */
+export const DEFAULT_QUESTIONS: Question[] = [...TEXT_QUESTIONS, ...IMAGE_QUESTIONS]
+
+/** サンプル：押すと State（問い合わせ文）と Questions の両方を置き換える */
+export type Sample = { text: string; note: string; questions: Question[] }
+
 // 動作確認用の入力（架空のポチッとモールの問い合わせ）
-export const SAMPLE_INQUIRIES: { text: string; note: string }[] = [
-  { text: 'キャンセルの条件を教えてください', note: '期待：faq' },
-  { text: '注文をキャンセルしたいです', note: '期待：order' },
-  { text: '頼んだ本がまだ届かないんですけど！', note: '期待：delivery' },
-  { text: '届いた本が注文と違う', note: '正解が一つに決まらない' },
+export const SAMPLES: Sample[] = [
+  { text: 'キャンセルの条件を教えてください', note: '期待：faq', questions: DEFAULT_QUESTIONS },
+  { text: '注文をキャンセルしたいです', note: '期待：order', questions: DEFAULT_QUESTIONS },
+  { text: '頼んだ本がまだ届かないんですけど！', note: '期待：delivery', questions: DEFAULT_QUESTIONS },
+  { text: '届いた本が注文と違う', note: '正解が一つに決まらない', questions: DEFAULT_QUESTIONS },
 ]
+
