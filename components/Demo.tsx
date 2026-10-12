@@ -6,6 +6,7 @@ import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Container from '@mui/material/Container'
 import Grid from '@mui/material/Grid'
+import Link from '@mui/material/Link'
 import Stack from '@mui/material/Stack'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
@@ -59,10 +60,10 @@ export function Demo() {
       <AppBar position="static" color="default" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Toolbar sx={{ gap: 2 }}>
           <Typography variant="h6" component="h1" sx={{ fontWeight: 700 }}>
-            ポチッとモール判定デモ
+            Jev x OpenAI Decisions API Playground
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ display: { xs: 'none', md: 'block' } }}>
-            Jev × OpenAI Decisions API
+            題材：ポチッとモール（架空の本・雑誌ECサイト）
           </Typography>
           <Box sx={{ flex: 1 }} />
           <Tabs value={screen} onChange={(_, v: Screen) => setScreen(v)}>
@@ -106,8 +107,15 @@ export function Demo() {
                 <ResultPanel
                   title="Jev（TypeSafe）"
                   result={results.jev}
-                  // https://docs.typesafe.ai/models#language-support
-                  note="※ Jev の主な学習言語は英語で、日本語は精度が英語と同等ではないとされています（公式ドキュメントより）"
+                  note={
+                    <>
+                      ※ Jev の主な学習言語は英語で、日本語は精度が英語と同等ではないとされています（
+                      <Link href="https://docs.typesafe.ai/models#language-support" target="_blank" rel="noopener noreferrer">
+                        公式ドキュメント
+                      </Link>
+                      より）
+                    </>
+                  }
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>

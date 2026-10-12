@@ -1,4 +1,4 @@
-# ポチッとモール判定デモ（Jev × OpenAI Decisions API）
+# Jev x OpenAI Decisions API Playground
 
 架空の本・雑誌ECサイト「ポチッとモール」のカスタマーサポートを題材に、同じ問い合わせ文を
 TypeSafe の **Jev** と OpenAI の **Decisions API** に同時に投げ、判定結果と応答時間を左右に並べて比べるデモです。

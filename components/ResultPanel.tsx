@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -19,7 +19,7 @@ type Props = {
   title: string
   result: ApiResult
   /** タイトル下に小さく出す注意書き */
-  note?: string
+  note?: ReactNode
 }
 
 const pct = (p: number) => `${(p * 100).toFixed(1)}%`
