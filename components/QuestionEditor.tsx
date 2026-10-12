@@ -40,6 +40,27 @@ export const KIND_LABEL: Record<Kind, string> = {
   predicate: 'Noul / predicate',
 }
 
+/** 種類ごとの説明（https://docs.typesafe.ai/primitives と Decisions API ガイドの定義をもとに日本語で） */
+const KIND_DESCRIPTION: Record<Kind, { summary: string; detail: string; example: string }> = {
+  choice: {
+    summary: '用意した選択肢の中から、いちばん当てはまるものを1つ選びます。',
+    detail: '答えは、選ばれた選択肢・選択肢ごとの確率・Confidence（どのくらい確信があるか）です。選択肢に順番がない分類に使います。',
+    example: '例：問い合わせをどの担当に回すか、レビューの話題は何か',
+  },
+  score: {
+    summary: '低い → 高いの順に並べた段階で、どのくらいかを評価します。',
+    detail:
+      '答えは、段階の番号（0から）を確率で重み付けした平均値（段階の間の値にもなります）・段階ごとの確率・Confidence です。程度や強さのように順番がある評価に使います。',
+    example: '例：お客さんの怒りの度合い、緊急度、満足度',
+  },
+  predicate: {
+    summary: '「はい／いいえ」で答えられる問いに、「はい」である確率（0〜1）を返します。',
+    detail:
+      'Jev では Noul、Decisions API では predicate と呼びます。「はい」「いいえ」とする条件を書くと、Jev には条件として、Decisions API には問いの補足として送ります。',
+    example: '例：本人確認が必要か、急ぎの問い合わせか、秘密情報が書かれているか',
+  },
+}
+
 type Row = { key: string; description: string }
 
 /** 種類を切り替えても、名前・問い・選択肢（段階）の入力はできるだけ引き継ぐ */
@@ -135,6 +156,19 @@ export function QuestionEditor({ question, otherNames, onSave, onClose }: Props)
               </ToggleButton>
             ))}
           </ToggleButtonGroup>
+
+          {/* 選んでいる種類が何をするものかの説明 */}
+          <Alert severity="info" variant="outlined" icon={KIND_ICON[draft.kind]}>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {KIND_LABEL[draft.kind]}：{KIND_DESCRIPTION[draft.kind].summary}
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 0.5 }}>
+              {KIND_DESCRIPTION[draft.kind].detail}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" component="div" sx={{ mt: 0.5 }}>
+              {KIND_DESCRIPTION[draft.kind].example}
+            </Typography>
+          </Alert>
 
           <TextField
             label="名前"
