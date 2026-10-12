@@ -81,15 +81,26 @@ async function runOne<Res>(job: ApiJob<Res>, onUpdate: (id: ApiId, result: ApiRe
   }
 }
 
-export type EnvStatus = { openai: boolean; typesafe: boolean }
+export type EnvStatus = {
+  openai: boolean
+  typesafe: boolean
+  /** サーバーで使うエンドポイント（環境変数か既定値。画面からは変更できない）。取得できなかったときは空 */
+  baseUrls: { openai: string; typesafe: string }
+}
 
-/** .env に APIキーがあるかどうか（キーの値は返らない） */
+export const EMPTY_ENV_STATUS: EnvStatus = { openai: false, typesafe: false, baseUrls: { openai: '', typesafe: '' } }
+
+/** サーバーの設定：環境変数に APIキーがあるか（値は返らない）と、エンドポイント */
 export async function fetchEnvStatus(): Promise<EnvStatus> {
   try {
-    const res = await axios.get<EnvStatus>('/api/env-status')
-    return { openai: !!res.data.openai, typesafe: !!res.data.typesafe }
+    const { data } = await axios.get<EnvStatus>('/api/env-status')
+    return {
+      openai: !!data.openai,
+      typesafe: !!data.typesafe,
+      baseUrls: { openai: data.baseUrls?.openai ?? '', typesafe: data.baseUrls?.typesafe ?? '' },
+    }
   } catch {
-    return { openai: false, typesafe: false }
+    return EMPTY_ENV_STATUS
   }
 }
 

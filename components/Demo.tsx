@@ -13,7 +13,7 @@ import Tabs from '@mui/material/Tabs'
 import TextField from '@mui/material/TextField'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
-import { fetchEnvStatus, runAll, type ApiJob, type EnvStatus } from '@/lib/apiClient'
+import { EMPTY_ENV_STATUS, fetchEnvStatus, runAll, type ApiJob, type EnvStatus } from '@/lib/apiClient'
 import {
   buildDecisionsInput,
   buildDecisionsRequest,
@@ -47,8 +47,8 @@ export function Demo() {
   const [screen, setScreen] = useState<Screen>('settings')
   // APIキーはメモリ（state）にのみ保持する
   const [keys, setKeys] = useState<Keys>({ openai: '', typesafe: '' })
-  // .env にキーがあるか（あれば初期値として使う。画面で入力した値が優先）
-  const [envStatus, setEnvStatus] = useState<EnvStatus>({ openai: false, typesafe: false })
+  // サーバーの設定（環境変数にキーがあるか・エンドポイント）。キーは画面で入力した値が優先
+  const [envStatus, setEnvStatus] = useState<EnvStatus>(EMPTY_ENV_STATUS)
   useEffect(() => {
     void fetchEnvStatus().then(setEnvStatus)
   }, [])

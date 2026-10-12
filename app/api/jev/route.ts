@@ -1,24 +1,24 @@
 // Jev（TypeSafe）を公式 SDK で呼び出す中継。
 // TypeSafe API はブラウザからの直接呼び出しを CORS で拒否しているため、サーバー側から呼ぶ。
-// API キーはリクエストヘッダー（画面で入力した値）か .env から取り、この呼び出しにだけ使う（保存・ログ出力はしない）。
+// API キーとエンドポイントは、画面で入力した値（リクエストヘッダー）か環境変数から取り、
+// この呼び出しにだけ使う（保存・ログ出力はしない）。決め方は lib/serverConfig.ts を参照。
 import { APIError, TypeSafeClient } from '@typesafe-ai/sdk'
 import type { JevRequest } from '@/lib/jev'
-import { resolveKey } from '@/lib/envKeys'
-import { KEY_HEADER, type ProxyEnvelope } from '@/lib/types'
+import { resolveTarget } from '@/lib/serverConfig'
+import type { ProxyEnvelope } from '@/lib/types'
 
 export async function POST(request: Request) {
-  // 画面で入力したキー（ヘッダー）を優先し、なければ .env のキーを使う
-  const apiKey = resolveKey(request, KEY_HEADER, 'jev')
-  if (!apiKey) {
-    return Response.json(
-      { ok: false, ms: null, error: { message: 'TypeSafe の APIキーが未設定です（画面でも .env でも設定されていません）' } } satisfies ProxyEnvelope,
-      { status: 400 },
-    )
+  const target = resolveTarget(request, 'jev', 'TypeSafe')
+  if ('error' in target) {
+    return Response.json({ ok: false, ms: null, error: { message: target.error } } satisfies ProxyEnvelope, {
+      status: 400,
+    })
   }
   const body = (await request.json()) as JevRequest
 
   const client = new TypeSafeClient({
-    apiKey,
+    apiKey: target.apiKey,
+    baseURL: target.baseURL,
     // 応答時間を1回の呼び出しとして計測するため、自動リトライは無効にする
     retry: { maxRetries: 0 },
     timeout: 60_000,
