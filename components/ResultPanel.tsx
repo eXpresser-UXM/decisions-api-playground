@@ -40,6 +40,30 @@ function OneLine({ children, sx }: { children: string; sx?: object }) {
   )
 }
 
+// 選択肢がこれより多い Choice は、確率の高い順に上位だけを表示し、残りは「表示」ボタンで開く
+const MANY_OPTIONS = 12
+const TOP_OPTIONS = 10
+
+function ChoiceBars({ items, highlight }: { items: BarItem[]; highlight?: string }) {
+  const [showAll, setShowAll] = useState(false)
+  if (items.length <= MANY_OPTIONS) return <Bars items={items} highlight={highlight} />
+  const sorted = [...items].sort((a, b) => b.probability - a.probability)
+  const shown = showAll ? sorted : sorted.slice(0, TOP_OPTIONS)
+  return (
+    <Stack spacing={1}>
+      <Typography variant="caption" color="text.secondary">
+        選択肢 {items.length} 件を確率の高い順に表示{showAll ? '' : `（上位 ${TOP_OPTIONS} 件）`}
+      </Typography>
+      <Bars items={shown} highlight={highlight} />
+      <Box>
+        <Button size="small" onClick={() => setShowAll((v) => !v)}>
+          {showAll ? '上位だけを表示' : `残り ${items.length - TOP_OPTIONS} 件を表示`}
+        </Button>
+      </Box>
+    </Stack>
+  )
+}
+
 function Bars({ items, highlight }: { items: BarItem[]; highlight?: string }) {
   return (
     <Stack spacing={0.75}>
@@ -117,7 +141,7 @@ function AnswerView({ answer, question }: { answer: Answer; question?: Question 
         <Box>
           <AnswerHead name={answer.name} kind="Choice" question={question} />
           <Main value={answer.choice} sub={`Confidence ${answer.confidence.toFixed(3)}`} />
-          <Bars items={withDescriptions(answer.probabilities, question)} highlight={answer.choice} />
+          <ChoiceBars items={withDescriptions(answer.probabilities, question)} highlight={answer.choice} />
         </Box>
       )
     case 'score': {

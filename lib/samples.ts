@@ -2,6 +2,7 @@
 // サンプルを押すと State（問い合わせ文）とグループの Questions の両方を置き換える。
 // 文章は架空のもの（実在の人物・会社・データは使わない）か、各社の公式ドキュメントの例（source に出典を書く）
 import { DEFAULT_QUESTIONS } from './questions'
+import { STRESS_SAMPLE_GROUPS } from './stressSamples'
 import type { Question } from './types'
 
 export type SampleGroup = {
@@ -619,4 +620,6 @@ export const SAMPLE_GROUPS: SampleGroup[] = [
       },
     ],
   },
+  // 選択肢や問いが多い場合の耐久テスト（lib/stressSamples.ts）
+  ...STRESS_SAMPLE_GROUPS,
 ]
