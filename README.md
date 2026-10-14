@@ -5,6 +5,9 @@
 
 **公開中のサイト：https://decisions-api-playground.vercel.app/**
 
+- 発表スライド：[「しゃべらないAI」Jevとは？生成AIとの違いをハンズオンで体験](https://www.docswell.com/s/eXpresser-UXM/53JQMD-2026-10-14-jev)（ドクセル）
+- イベントページ：[DX道場 2026/10/14（connpass）](https://dxdojo.connpass.com/event/408217/)
+
 ![判定結果の例](docs/images/03-results.png)
 
 ## これは何のアプリ？
@@ -27,7 +30,7 @@ Jev と Decisions API は、どちらも「文章について決まった形の�
 | Score | 低い → 高いの段階で評価する（例：怒りの度合い、緊急度） |
 | Noul（Jev）／ predicate（Decisions API） | 「はい／いいえ」で答えられる問いに、「はい」である確率を返す（例：本人確認が必要か） |
 
-DX道場（2026/10/14）のデモ・ハンズオン用に作りました。
+DX道場（2026/10/14）のデモ・ハンズオン用に作りました（[イベントページ](https://dxdojo.connpass.com/event/408217/)・[発表スライド](https://www.docswell.com/s/eXpresser-UXM/53JQMD-2026-10-14-jev)）。
 
 ## 免責事項（必ずお読みください）
 
