@@ -1,4 +1,4 @@
-# Jev x OpenAI Decisions API Playground
+# Jev + OpenAI Decisions API Playground
 
 同じ文章と問いを、TypeSafe の **Jev** と OpenAI の **Decisions API** に同時に投げて、
 判定結果・応答時間・トークン数・推定課金額を左右に並べて比べるプレイグラウンドです。

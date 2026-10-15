@@ -6,7 +6,7 @@ import theme from "@/lib/theme";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Jev x OpenAI Decisions API Playground",
+  title: "Jev + OpenAI Decisions API Playground",
   description: "Jev と OpenAI Decisions API の判定を並べて比べるデモ",
 };
 
