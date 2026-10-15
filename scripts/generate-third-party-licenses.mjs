@@ -47,7 +47,7 @@ const rule = '='.repeat(80)
 const own = fs.readFileSync(path.join(root, 'LICENSE'), 'utf8').trim()
 
 const out = [
-  'Jev x OpenAI Decisions API Playground - Licenses',
+  'Jev + OpenAI Decisions API Playground - Licenses',
   '',
   'This file is generated automatically by scripts/generate-third-party-licenses.mjs.',
   'Source: https://github.com/eXpresser-UXM/decisions-api-playground',

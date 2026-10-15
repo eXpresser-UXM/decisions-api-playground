@@ -120,7 +120,7 @@ export function Demo() {
       <AppBar position="static" color="default" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Toolbar sx={{ gap: 2 }}>
           <Typography variant="h6" component="h1" sx={{ fontWeight: 700 }}>
-            Jev x OpenAI Decisions API Playground
+            Jev + OpenAI Decisions API Playground
           </Typography>
           <Box sx={{ flex: 1 }} />
           {/* 使い方のページ（GitHub 上の docs/usage.md）を新しいタブで開く */}

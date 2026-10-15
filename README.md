@@ -1,9 +1,13 @@
-# Jev x OpenAI Decisions API Playground
+# Jev + OpenAI Decisions API Playground
 
 同じ文章と問いを、TypeSafe の **Jev** と OpenAI の **Decisions API** に同時に投げて、
 判定結果・応答時間・トークン数・推定課金額を左右に並べて比べるプレイグラウンドです。
 
 **公開中のサイト：https://decisions-api-playground.vercel.app/**
+
+> [!IMPORTANT]
+> **はじめての方は → [プレイグラウンドの使い方](docs/usage.md)**
+> 公開中のサイトには APIキーを用意していません。使うには、**最初に自分の APIキー（TypeSafe と OpenAI）を「設定」画面に入力する**必要があります（[APIキーの用意と設定](docs/usage.md#1-はじめにapiキーを用意して設定する)）。
 
 - 発表スライド：[「しゃべらないAI」Jevとは？生成AIとの違いをハンズオンで体験](https://www.docswell.com/s/eXpresser-UXM/53JQMD-2026-10-14-jev)（ドクセル）
 - イベントページ：[DX道場 2026/10/14（connpass）](https://dxdojo.connpass.com/event/408217/)
@@ -46,14 +50,16 @@ DX道場（2026/10/14）のデモ・ハンズオン用に作りました（[イ�
 
 ## とりあえず使ってみる
 
-インストールは不要です。ブラウザで次のサイトを開くだけで使えます。
+インストールは不要です。ただし、**APIキーは自分で用意する必要があります**（サイトにはキーを用意していません）。
 
-1. https://decisions-api-playground.vercel.app/ を開く
-2. APIキーを用意する
-   - ハンズオンなど、サーバーにキーが設定されているときは不要です（「判定」タブから始まります）
-   - それ以外のときは「設定」タブで、[OpenAI](https://platform.openai.com/api-keys) と [TypeSafe](https://console.typesafe.ai/keys) のキーを入力します（どちらも利用料金がかかります）
-3. 「サンプル一覧を開く」からサンプルを選び、「判定する」を押す
-4. 左（Jev）と右（Decisions API）の結果を見比べる
+1. **APIキーを用意する**：[TypeSafe](https://console.typesafe.ai/keys) と [OpenAI](https://platform.openai.com/api-keys) の管理画面でキーを作ります（どちらも利用料金がかかります。専用のキーを作り、利用額の上限を設定してください）
+2. https://decisions-api-playground.vercel.app/ を開く（最初は「設定」画面が開きます）
+3. **「設定」画面で APIキーを入力**し、「判定画面へ」を押す（片方のキーだけでも使えます）
+4. 「サンプル一覧を開く」からサンプルを選び、「判定する」を押す
+5. 左（Jev）と右（Decisions API）の結果を見比べる
+6. 使い終わったら、各社の管理画面でキーを削除（無効化）する
+
+詳しい手順は [使い方の「はじめに：APIキーを用意して設定する」](docs/usage.md#1-はじめにapiキーを用意して設定する) を見てください。
 
 画面の見方や、問いの追加・編集、画像の添付などは **[プレイグラウンドの使い方](docs/usage.md)** にまとめています。
 
