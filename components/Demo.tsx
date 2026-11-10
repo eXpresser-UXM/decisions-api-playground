@@ -78,7 +78,7 @@ export function Demo() {
 
   const judge = async () => {
     const allQuestions = askedQuestions
-    // Jev には画像を送れないため、画像の問いを除いて送る
+    // このアプリでは Jev にテキストのみ送るため、画像の問いを除く
     const jevQuestions = allQuestions.filter((q) => !q.image)
     const jev: ApiJob<JevResponse> = {
       id: 'jev',

@@ -3,9 +3,9 @@
 import type { Answer, Pricing, Question, TokenUsage } from './types'
 
 /** jev-latest ではなく固定バージョンを使う（https://docs.typesafe.ai/models） */
-export const JEV_MODEL = 'jev-1.13.0'
+export const JEV_MODEL = 'jev-1.14.0'
 
-/** 推定課金額の計算に使う単価（入力トークンのみ課金。2026-10-10 時点） */
+/** 推定課金額の計算に使う単価（入力トークンのみ課金。2026-11-10 時点） */
 export const JEV_PRICING: Pricing = {
   usdPerMillionInputTokens: 0.042,
   docUrl: 'https://docs.typesafe.ai/models#current-models',
@@ -82,8 +82,8 @@ export function buildJevRequest(questions: Question[], text: string): JevRequest
   }
 }
 
-/** Jev は画像入力に非対応（https://docs.typesafe.ai/models の Input 欄） */
-export const JEV_IMAGE_UNSUPPORTED = '画像非対応（Jev はテキストのみ入力できます）'
+/** このプレイグラウンドでは Jev にテキストのみ送る */
+export const JEV_IMAGE_UNSUPPORTED = 'このアプリでは Jev に画像を送信しません'
 
 export function parseJevResponse(questions: Question[], res: JevResponse): Answer[] {
   return questions.map((q): Answer => {

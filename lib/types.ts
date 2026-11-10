@@ -4,7 +4,7 @@ type QuestionBase = {
   /** 答えを識別する名前（Jev の questions のキー／Decisions API の name） */
   name: string
   instructions: string
-  /** 画像についての問い。画像を添付したときだけ判定する（Jev は画像非対応） */
+  /** 画像についての問い。画像を添付したときだけ Decisions API で判定する */
   image?: boolean
 }
 

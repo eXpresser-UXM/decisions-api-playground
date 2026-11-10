@@ -107,7 +107,7 @@ export function ImageAttach({ image, onChange }: Props) {
       ) : (
         <Typography variant="body2" color="text.secondary">
           ボタンから選ぶか、画像をコピーしてこの画面に貼り付け（Ctrl+V / ⌘V）できます。添付すると「画像」の付いた問いも
-          Decisions API で判定します（Jev は画像非対応）。
+          このアプリでは、画像は Decisions API に送信します。
           <strong>画像は1MB以内を推奨</strong>します。3MB前後を超えると、送信に失敗するなど動作が不安定になります。
         </Typography>
       )}
