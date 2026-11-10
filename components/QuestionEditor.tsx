@@ -253,7 +253,7 @@ export function QuestionEditor({ question, otherNames, onSave, onClose }: Props)
 
           <FormControlLabel
             control={<Checkbox checked={draft.image} onChange={(e) => set({ image: e.target.checked })} />}
-            label="画像の問い（画像を添付したときだけ判定。Jev は画像非対応）"
+            label="画像の問い（画像を添付したときだけ Decisions API で判定）"
           />
 
           {touched && errors.length > 0 && (
